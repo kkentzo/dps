@@ -63,7 +63,7 @@ void pool_free(pool_t *pool);
 
 
 // empty the pool
-void pool_empty(pool_t *pool, int release);
+void pool_empty(pool_t *pool);
 
 
 // Add a profile to the pool (with CN=0)
