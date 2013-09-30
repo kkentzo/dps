@@ -22,6 +22,7 @@
 #define LOAD_FROM "load_from"
 #define SEED "seed"
 #define COMPETE "compete"
+#define RELATEDNESS "relatedness"
 
 #define PRINT_EVERY "print_every"
 #define FPARTS "fparts"
@@ -74,6 +75,7 @@ void print_help() {
 
     printf("  -c or --compete : activate competition between 2 plasmid types\n");
     printf("                    mutations are deactivated, specify population using --load_from \n");
+    printf("  -r or --relatedness : calculate relatedness in stats\n");
 
     printf("\nPLASMID PARAMETERS\n");
     printf("  --beta DOUBLE : basal replication rate\n");
@@ -132,6 +134,7 @@ int parse_params(params_t *params, int argc, char **argv) {
 	    {LOG_EVERY, required_argument, 0, 0},
 	    {SEED, required_argument, 0, 0},
 	    {COMPETE, no_argument, 0, 'c'},
+	    {RELATEDNESS, no_argument, 0, 'r'},
 
 	    {MU, required_argument, 0, 0},
 	    {PCONJ, required_argument, 0, 0},
@@ -165,7 +168,7 @@ int parse_params(params_t *params, int argc, char **argv) {
 	    {0, 0, 0, 0}
 	};
 
-	c = getopt_long(argc, argv, "hc",
+	c = getopt_long(argc, argv, "hcr",
 			long_options, &option_index);
 	if (c == -1)
 	    break;
@@ -294,8 +297,11 @@ int parse_params(params_t *params, int argc, char **argv) {
 	case 'c':
 	    params->compete = TRUE;
 	    break;
-	    
 
+	case 'r':
+	    params->relatedness = TRUE;
+	    break;
+	    
 	case '?':
 	    return -1;
 
