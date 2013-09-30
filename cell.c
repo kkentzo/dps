@@ -449,7 +449,7 @@ void cell_update(cell_t *cell, pool_t *cpool, gboolean rdeath) {
 	    // remember to release profile when emptying the mutant array
 	    for (j=0; j<n_m; j++) {
 		mut_profile = profile_new_m(plasmid->profile);
-		// register mutation globally
+		// register mutation in the pool
 		pool_register_mutation(cell->params->pool,
 				       plasmid->profile,
 				       mut_profile);

@@ -64,18 +64,15 @@ dps.aggregate <- function( path ) {
 
     ## add values to dynamics
     results$dynamics$counters <- results$dynamics$counters + r$dynamics$counters
-    
-    results$dynamics$global$M <- results$dynamics$global$M + r$dynamics$global$M
-    results$dynamics$global$V <- results$dynamics$global$V + r$dynamics$global$V
-    results$dynamics$global$C <- results$dynamics$global$C + r$dynamics$global$C
 
-    results$dynamics$inter$M <- results$dynamics$inter$M + r$dynamics$inter$M
-    results$dynamics$inter$V <- results$dynamics$inter$V + r$dynamics$inter$V
-    results$dynamics$inter$C <- results$dynamics$inter$C + r$dynamics$inter$C
+    for (level in c("global", "inter", "intra"))
+      for (tp in c("M", "V", "C")) {
 
-    results$dynamics$intra$M <- results$dynamics$intra$M + r$dynamics$intra$M
-    results$dynamics$intra$V <- results$dynamics$intra$V + r$dynamics$intra$V
-    results$dynamics$intra$C <- results$dynamics$intra$C + r$dynamics$intra$C
+        results$dynamics[[level]][[tp]] <-
+          results$dynamics[[level]][[tp]] +
+          r$dynamics[[level]][[tp]]
+
+      }
     
     ## add values to histograms
     results$histograms$cn$y <- results$histograms$cn$y + r$histograms$cn$y
@@ -88,17 +85,12 @@ dps.aggregate <- function( path ) {
   ## normalize dynamics
   results$dynamics$counters <- results$dynamics$counters / length(fnames)
   
-  results$dynamics$global$M <- results$dynamics$global$M / length(fnames)
-  results$dynamics$global$V <- results$dynamics$global$V / length(fnames)
-  results$dynamics$global$C <- results$dynamics$global$C / length(fnames)
+  for (level in c("global", "inter", "intra"))
+    for (tp in c("M", "V", "C")) {
 
-  results$dynamics$inter$M <- results$dynamics$inter$M / length(fnames)
-  results$dynamics$inter$V <- results$dynamics$inter$V / length(fnames)
-  results$dynamics$inter$C <- results$dynamics$inter$C / length(fnames)
-
-  results$dynamics$intra$M <- results$dynamics$intra$M / length(fnames)
-  results$dynamics$intra$V <- results$dynamics$intra$V / length(fnames)
-  results$dynamics$intra$C <- results$dynamics$intra$C / length(fnames)
+      results$dynamics[[level]][[tp]] <-
+        results$dynamics[[level]][[tp]]  / length(fnames)
+    }
   
   results
   

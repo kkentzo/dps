@@ -4,12 +4,12 @@ source('dps.r')
 
 ## === use the following files for results ===
 
-## || NO-CONJ results with pconj=0 ||
+## || NO-CONJ results with pconj=0 || <=== THIS IS USED IN THE PAPER
 ## for RESULTS.BKA use results.bka <- dps.load('/data/dps/bka/results.2.16.h5')
 ## for DZ use load("/data/dps/bka/dz.2.16.xdr")
 
 
-## || CONJ results with pconj=1e-2 ||
+## || CONJ results with pconj=1e-2 || <=== THIS IS **NOT** USED IN THE PAPER
 ## for RESULTS.BKA use dps.load('/data/dpsm/htg.bka/results.2.1.h5')
 ## for DZ use load("/data/dpsm/htg.bka/dz.full.2.1.xdr")
 
