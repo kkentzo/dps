@@ -478,6 +478,36 @@ void cell_update(cell_t *cell, pool_t *cpool, gboolean rdeath) {
     // register cell in stats
     logger_register_cell(cell->params->logger, cell);
 
+    // register relatedness stats??
+    if (cell->params->relatedness) {
+
+	double rvals[P_RELATEDNESS_IDX_ALL];
+
+	for (i=0; i<cell->plasmids->len; i++) {
+	    // grab plasmid
+	    plasmid = g_ptr_array_index(cell->plasmids, i);
+
+	    // calculate whole-group (WG) relatedness
+	    rvals[P_RELATEDNESS_IDX_BETA_MEAN] = nvar_calc_mean(cell->stats,
+								P_INTRA_IDX_BETA);
+	    rvals[P_RELATEDNESS_IDX_KAPPA_MEAN] = nvar_calc_mean(cell->stats,
+								 P_INTRA_IDX_KAPPA);
+	    rvals[P_RELATEDNESS_IDX_ALPHA_MEAN] = nvar_calc_mean(cell->stats,
+								 P_INTRA_IDX_ALPHA);
+
+	    rvals[P_RELATEDNESS_IDX_BETA] = plasmid->profile->beta;
+	    rvals[P_RELATEDNESS_IDX_KAPPA] = plasmid->profile->kappa;
+	    rvals[P_RELATEDNESS_IDX_ALPHA] = plasmid->profile->alpha;
+
+	    // add rvals to the pool
+	    pool_register_plasmid_relatedness(cell->params->pool,
+					      rvals,
+					      plasmid->cn);
+
+	}
+	
+    }
+
     // update copy number (now that the cell is registered in logger)
     cell->cn += cell->total_extra_cn;
 

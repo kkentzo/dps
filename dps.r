@@ -340,8 +340,8 @@ dps.plot.cc.dists <- function( results, levels="inter", pairs=c("domg.beta", "do
 ## calculates and returns the 3 components of the price equation
 ## for both beta and kappa
 ## STEPS.RANGE is a 2-tuple
-dps.calc.price <- function(results, window.size=500,
-                           steps.range=NA, decompose=F, correlations=F)
+dps.calc.price <- function(results, window.size=500, steps.range=NA, 
+                           decompose=F, correlations=F, relatedness=T)
 {
 
   if (length(steps.range) != 2) 
@@ -357,13 +357,14 @@ dps.calc.price <- function(results, window.size=500,
 
     ## calculate and store transmission bias
     dz[[z.name]] <- data.frame(
-                      tbias=ma(results$dynamics$global$M[[sprintf("t%s", z.name)]][take.steps],
+                      tbias=ma(
+                        results$dynamics$global$M[[sprintf("t%s", z.name)]][take.steps],
                         window.size=window.size) / dz$fitness)
 
     ## calculate covariances
     for (level in c("global", "inter", "intra")) {
 
-      dz[[z.name]][[sprintf("%s", level)]] <-
+      dz[[z.name]][[level]] <-
         ma(dps.calc.association(results$dynamics[[level]],
                                 sprintf("%s.fitness", z.name),
                                 norm.by="",
@@ -386,6 +387,11 @@ dps.calc.price <- function(results, window.size=500,
 
     ## Calculate total selection
     dz[[z.name]][["total"]] <- dz[[z.name]]$global + dz[[z.name]]$tbias
+
+    ## Calculate relatedness
+    if (relatedness)
+      dz[[z.name]]$r <- ma(results$dynamics$relatedness[[z.name]][take.steps],
+                           window.size=window.size)
     
   }
 
@@ -500,7 +506,6 @@ dps.plot.price <- function( results, dz=NULL, window.size=0, steps.range=NA,
 dps.plot.price2 <- function( results, dz=NULL, window.size=0, steps.range=NA,
                              xlim=NA, bw.adjust=1 ) {
 
-  par.bak <- par(no.readonly=TRUE)
   layout(rbind(rep(1,4), matrix(2:9, ncol=4)))
 
   ## calculate price components??
@@ -596,7 +601,7 @@ dps.plot.price2 <- function( results, dz=NULL, window.size=0, steps.range=NA,
 
   }
 
-  par(par.bak)
+  layout(matrix(1))
 
 }
 
@@ -615,7 +620,6 @@ dps.plot.price.name <- function(results, dz, name, steps.range=NA,
   else
     steps.range <- steps.range[1]:steps.range[2]
 
-  par.bak <- par(no.readonly=TRUE)
   layout(matrix(1:2, ncol=1))
 
   name.expr <- switch(name,
@@ -676,7 +680,7 @@ dps.plot.price.name <- function(results, dz, name, steps.range=NA,
   legend(legend.loc, c("total", "inter", "intra", "tbias"),
          lwd=1, col=c("black", "blue", "red", "green"))
 
-  par(par.bak)
+  layout(matrix(1))
   
 }
 
@@ -816,6 +820,123 @@ dps.plot.price.components <- function(results, dz, steps.range=NA) {
 }
 
 
+
+
+
+
+
+
+## =========================================================================
+## plot the relatedness components (SORTED BY EVOLUTIONARY VARIABLES)
+## DZ can be either the output of dps.calc.price() or a results objects
+dps.plot.relatedness <- function( results, dz=NULL, window.size=0, 
+                                  steps.range=NA, xlim=NA, bw.adjust=1 ) {
+
+  layout(rbind(rep(1,4), matrix(2:9, ncol=4)))
+
+  ## calculate relatedness components??
+  if (is.null(dz))
+    dz <- dps.calc.price(results, window.size, steps.range=NA, relatedness=T)
+
+  ## calculate steps.range
+  if (length(steps.range) != 2) 
+    steps.range <- 1:nrow(dz$beta)
+  else
+    steps.range <- steps.range[1]:steps.range[2]
+
+  ## plot evolutionary dynamics of beta, kappa, alpha
+  plot.with.range(cbind(results$dynamics$global$M$beta[steps.range],
+                        results$dynamics$global$M$kappa[steps.range],
+                        results$dynamics$global$M$alpha[steps.range]),
+                  cbind(sqrt(results$dynamics$global$V$beta[steps.range]),
+                        sqrt(results$dynamics$global$V$kappa[steps.range]),
+                        sqrt(results$dynamics$global$V$alpha[steps.range])),
+                  x=steps.range,
+                  main="Plasmid Replication Parameters",
+                  col=c("blue", "red", "green"),
+                  xlab="Time", ylab="")
+  legend("topleft", c(expression(beta), expression(kappa), expression(alpha)),
+         lwd=1, col=c("blue", "red", "green"))
+
+
+
+  ## PLOT SELECTION FOR EACH VARIABLE
+  for (name in c("beta", "kappa", "alpha", "tbias")) {
+
+    if (name == "tbias") {
+
+      ## plot time series
+      b <- dz$beta$tbias[steps.range]
+      k <- dz$kappa$tbias[steps.range]
+      a <- dz$alpha$tbias[steps.range]
+      print(sprintf("tbias | beta=%.3e | kappa=%.3e | alpha=%.3e",
+                    mean(b, na.rm=T), mean(k, na.rm=T), mean(a, na.rm=T)))
+      
+      mplot(steps.range, cbind(b, k, a), xlab="Time",
+            main=sprintf("%s", name))
+      abline(h=0)
+      
+    } else {
+      ## plot Price time series
+      total = dz[[name]]$total[steps.range]
+      inter = dz[[name]]$inter[steps.range]
+      intra = dz[[name]]$intra[steps.range]
+
+      print(sprintf("%s | total=%.3e | inter=%.3e | intra=%.3e",
+                    name, mean(total,na.rm=T),mean(inter,na.rm=T), mean(intra,na.rm=T)))
+
+      mplot(steps.range, cbind(inter, intra, total), xlab="Time",
+            main=sprintf("%s", name), col=c("blue", "red", "black"))
+      abline(h=0)
+      legend("bottomleft", c("total", "inter", "intra"),
+             lwd=1, col=c("black", "blue", "red"))
+
+
+      ## plot relatedness time series
+      plot(steps.range, dz[[name]]$r[steps.range], t="l",
+           main=name, xlab="Time", ylab="")
+    }
+  }
+
+  print("== Discrepancies ==")
+  for (name in c("beta", "kappa", "alpha")) {
+
+    ii <- mean(dz[[name]]$inter[steps.range] + 
+               dz[[name]]$intra[steps.range], na.rm=T)
+    g <- mean(dz[[name]]$global[steps.range], na.rm=T)
+    
+    print(sprintf("%s : ABS(DIFF)=%.3e",
+                  name, abs(g-ii)))
+
+  }
+
+  layout(matrix(1))
+
+}
+
+
+
+## ====================================================================================
+## plot some basic features of the supplied RESULTS
+dps.plot.dynamics <- function( results ) {
+
+  ## store settings
+  layout(matrix(1))
+
+  ## plot plasmid replication parameters
+  plot.with.range(cbind(results$dynamics$global$M$beta,
+                        results$dynamics$global$M$kappa,
+                        results$dynamics$global$M$alpha),
+                  cbind(sqrt(results$dynamics$global$V$beta),
+                        sqrt(results$dynamics$global$V$kappa),
+                        sqrt(results$dynamics$global$V$alpha)),
+                  main="Plasmid Replication Parameters",
+                  col=c("blue", "red", "green"),
+                  xlab="Time", ylab="")
+  legend("topleft", c(expression(beta), expression(kappa), expression(alpha)),
+         lwd=1, col=c("blue", "red", "green"))
+
+}
 
 ## ====================================================================================
 ## plot some basic features of the supplied RESULTS
@@ -972,7 +1093,8 @@ dps.plot.all.parallel <- function( h5.path, png.path, cores ) {
       ## analyze results
       png(file.path(png.path, paste("results", r.id, "png", sep=".")),
           width=640, height=640, bg="white")
-      dps.analyze(r, window.size=500)
+      dps.plot.dynamics(r)
+      ##dps.analyze(r, window.size=500)
       dev.off()
 
       ## calculate DZ

@@ -47,12 +47,17 @@ pool_t *pool_new() {
     // initialize matrices
     pool->stats = nvar_init(P_INTRA_IDX_ALL);
 
+    // initialize relatedness statistics
+    pool->rstats = nvar_init(P_RELATEDNESS_IDX_ALL);
+
     pool->size = 0;
 
     // initialize buffers
     pool->M = calloc(P_INTRA_IDX_ALL, sizeof(double));
     pool->V = calloc(P_INTRA_IDX_ALL, sizeof(double));
     pool->C = calloc(P_INTRA_IDX_ALL*(P_INTRA_IDX_ALL-1)/2, sizeof(double));
+
+    pool->R = calloc(3, sizeof(double));
 
     return pool;
     
@@ -68,11 +73,13 @@ void pool_free(pool_t *pool) {
 
     // free the stats
     nvar_free(pool->stats);
+    nvar_free(pool->rstats);
 
     // free the buffers
     free(pool->M);
     free(pool->V);
     free(pool->C);
+    free(pool->R);
 
     // free the struct
     free(pool);
@@ -188,6 +195,15 @@ void pool_register_cell_stats(pool_t *pool, nvar_t *stats) {
     
 }
 
+
+
+
+// register a plasmid in the relatedness stats
+void pool_register_plasmid_relatedness(pool_t *pool, double *values, int cn) {
+
+    nvar_add(pool->rstats, values, cn);
+    
+}
 
 
 
@@ -341,7 +357,7 @@ void pool_update(pool_t *pool, int step, void *_params) {
 
     // write the stats??
     if (step % params->log_every == 0) {
-	//printf("G=%.10e | ", nvar_calc_covariance(pool->stats, P_INTRA_IDX_BETA, P_INTRA_IDX_FITNESS, FALSE));
+
 	// write the stats to buffers
 	nvar_get_statistics(pool->stats, pool->M, pool->V, pool->C, FALSE, 1);
 	// replace transmission biases
@@ -357,8 +373,20 @@ void pool_update(pool_t *pool, int step, void *_params) {
 	// update the competition table in logger
 	if (params->compete) 
 	    hdf_table_append_record(&((logger_t *)params->logger)->tbl_competition, freqs);
+
+	// write the relatedness stats to buffer
+	int i;
+	for (i=0; i<3; i++)
+	    pool->R[i] =			\
+		nvar_calc_covariance(pool->rstats, i, i+3, FALSE) /	\
+		nvar_calc_variance(pool->rstats, i+3, FALSE);
+	
+	    
+	hdf_table_append_record(&((logger_t *)params->logger)->tbl_relatedness, pool->R);
+
 	// reset the stats
 	nvar_reset(pool->stats);
+	nvar_reset(pool->rstats);
 
     }
 

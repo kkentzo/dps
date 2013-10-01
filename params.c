@@ -295,10 +295,12 @@ int parse_params(params_t *params, int argc, char **argv) {
 	    return 1;
 
 	case 'c':
+	    printf("Activating competition\n");
 	    params->compete = TRUE;
 	    break;
 
 	case 'r':
+	    printf("Recording relatedness\n");
 	    params->relatedness = TRUE;
 	    break;
 	    

@@ -166,6 +166,14 @@ logger_t *logger_new(params_t *params) {
 			 (const char **)nvar->plabels);
     // free the nvar object
     nvar_free(nvar);
+
+
+    // create the RELATEDNESS table
+    const char *relatedness_labels[] = {"beta", "kappa", "alpha"};
+    hdf_table_initialize(&logger->tbl_relatedness, logger->file_id,
+			 "/dynamics/relatedness", 3, 
+			 Q_HDF_TYPE_DOUBLE, relatedness_labels);
+    
     
     // reset the intra-buffers
     BFILL(logger->MM, P_INTRA_IDX_ALL, 0);
@@ -523,7 +531,9 @@ void logger_close(logger_t *logger) {
 
     hdf_table_finalize(&logger->tbl_intra_m);
     hdf_table_finalize(&logger->tbl_intra_v);
-    hdf_table_finalize(&logger->tbl_intra_c);    
+    hdf_table_finalize(&logger->tbl_intra_c);
+
+    hdf_table_finalize(&logger->tbl_relatedness);
     
     // Write the parameter values
     logger_write_params(logger);
