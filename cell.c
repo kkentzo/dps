@@ -62,8 +62,9 @@ cell_t *cell_new(GPtrArray *plasmids, params_t *params) {
     // initialize array of mutants
     cell->mutants = g_ptr_array_new();
 
-    // initialize cell descriptive statistics
+    // initialize cell statistics
     cell->stats = nvar_init(P_INTRA_IDX_ALL);
+    cell->rstats = nvar_init(P_PARAMS_IDX_ALL);
 
     // initialize other stuff
     cell_reset(cell);
@@ -102,6 +103,7 @@ void cell_reset(cell_t *cell) {
 
     // reset stats
     nvar_reset(cell->stats);
+    nvar_reset(cell->rstats);
 
     // reset and recalculate copy number/sum_alpha
     cell->cn = 0;
@@ -138,6 +140,7 @@ void cell_free(cell_t *cell) {
 
     // free the stats
     nvar_free(cell->stats);
+    nvar_free(cell->rstats);
 
     // free the cell
     free(cell);
@@ -366,8 +369,10 @@ void cell_update(cell_t *cell, pool_t *cpool, gboolean rdeath) {
     profile_t *profile;
     profile_t *mut_profile;
 
-    // reset intra-cellular stats (they will be recalculated)
+    // reset cell stats (they will be recalculated)
     nvar_reset(cell->stats);
+    nvar_reset(cell->rstats);
+    
 
     double pvals[P_INTRA_IDX_ALL];
     
@@ -465,6 +470,8 @@ void cell_update(cell_t *cell, pool_t *cpool, gboolean rdeath) {
 
 	// add profile to INTRA stats
 	nvar_add(cell->stats, pvals, cn);
+	// and add profile to relatedness stats
+	nvar_add(cell->rstats, &pvals[P_INTRA_IDX_BETA], plasmid->cn);
 
 	// update global sum_alpha and sum_mobility (these will be updated separately for
 	// potential mutants in cell_add_profile())
@@ -478,38 +485,73 @@ void cell_update(cell_t *cell, pool_t *cpool, gboolean rdeath) {
     // register cell in stats
     logger_register_cell(cell->params->logger, cell);
 
-    // register relatedness stats??
-    if (cell->params->relatedness) {
+    // update copy number (now that the cell is registered in the logger)
+    // the new value of cell->cn includes replications but **not** mutations
+    cell->cn += cell->total_extra_cn;
 
-	double rvals[P_RELATEDNESS_IDX_ALL];
 
-	for (i=0; i<cell->plasmids->len; i++) {
-	    // grab plasmid
-	    plasmid = g_ptr_array_index(cell->plasmids, i);
+    // ========== RELATEDNESS CALCULATIONS ==========
+    
+    // register relatedness stats
+    double rvals[P_RELATEDNESS_IDX_ALL];
 
-	    // calculate whole-group (WG) relatedness
-	    rvals[P_RELATEDNESS_IDX_BETA_MEAN] = nvar_calc_mean(cell->stats,
-								P_INTRA_IDX_BETA);
-	    rvals[P_RELATEDNESS_IDX_KAPPA_MEAN] = nvar_calc_mean(cell->stats,
-								 P_INTRA_IDX_KAPPA);
-	    rvals[P_RELATEDNESS_IDX_ALPHA_MEAN] = nvar_calc_mean(cell->stats,
-								 P_INTRA_IDX_ALPHA);
+    // calculate whole-group (WG) means
+    // (the same for all plasmids)
+    for (j=0; j<P_PARAMS_IDX_ALL; j++) 
+	rvals[j + P_RELATEDNESS_IDX_BETA_MEAN] =	\
+	    nvar_calc_mean(cell->rstats, j + P_PARAMS_IDX_BETA);
 
-	    rvals[P_RELATEDNESS_IDX_BETA] = plasmid->profile->beta;
-	    rvals[P_RELATEDNESS_IDX_KAPPA] = plasmid->profile->kappa;
-	    rvals[P_RELATEDNESS_IDX_ALPHA] = plasmid->profile->alpha;
+    // for all plasmids...
+    for (i=0; i<cell->plasmids->len; i++) {
+	// grab plasmid
+	plasmid = g_ptr_array_index(cell->plasmids, i);
 
+	// for all three plasmid parameters...
+	for (j=0; j<P_PARAMS_IDX_ALL; j++) {
+
+	    // get plasmid parameter value
+	    switch (j)
+		{
+		case P_PARAMS_IDX_BETA:
+		    rvals[P_RELATEDNESS_IDX_BETA] = plasmid->profile->beta;
+		    break;
+		case P_PARAMS_IDX_KAPPA:
+		    rvals[P_RELATEDNESS_IDX_KAPPA] = plasmid->profile->kappa;
+		    break;
+		case P_PARAMS_IDX_ALPHA:
+		    rvals[P_RELATEDNESS_IDX_ALPHA] = plasmid->profile->alpha;
+		    break;
+		}
+	    
+	    // calculate others-only (OO) means
+	    if (cell->rstats->n > plasmid->cn)
+		// there are more than one profiles in the cell
+		rvals[j + P_RELATEDNESS_IDX_BETA_MEAN_OO] =		\
+		    (cell->rstats->wsums[j + P_PARAMS_IDX_BETA] -	\
+		     (plasmid->cn * rvals[j + P_RELATEDNESS_IDX_BETA])) / \
+		    (cell->rstats->n - plasmid->cn);
+	    else if (cell->rstats->n == plasmid->cn) 
+		// there is only one profile in the host
+		// (which might be a single plasmid -- this case is dealt
+		//  with outside the plasmid parameter loop)
+		rvals[j + P_RELATEDNESS_IDX_BETA_MEAN_OO] =		\
+		    (cell->rstats->wsums[j + P_PARAMS_IDX_BETA] -	\
+		     (1 * rvals[j + P_RELATEDNESS_IDX_BETA])) / \
+		    (cell->rstats->n - 1);
+	    else
+		// this shouldn't hold
+		assert(FALSE);
+	}
+
+
+	// if we have a single solitary plasmid in the host,
+	// do not add it to the pool (because other-only means are NaN)
+	if (cell->rstats->n > 1)
 	    // add rvals to the pool
 	    pool_register_plasmid_relatedness(cell->params->pool,
 					      rvals,
 					      plasmid->cn);
-
-	}
-	
     }
-
-    // update copy number (now that the cell is registered in logger)
-    cell->cn += cell->total_extra_cn;
 
     // add mutant profiles to cell
     for (i=0; i<cell->mutants->len; i++) {

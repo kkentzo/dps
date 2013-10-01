@@ -1,6 +1,15 @@
 
 
 
+typedef enum {
+
+    P_PARAMS_IDX_BETA,
+    P_PARAMS_IDX_KAPPA,
+    P_PARAMS_IDX_ALPHA,
+
+    P_PARAMS_IDX_ALL,
+    
+} P_PARAMS_IDX;
 
 
 // the indices of means (and vars) of dynamics/[global|inter|intra]
@@ -64,6 +73,10 @@ typedef enum {
     P_RELATEDNESS_IDX_BETA_MEAN,
     P_RELATEDNESS_IDX_KAPPA_MEAN,
     P_RELATEDNESS_IDX_ALPHA_MEAN,
+
+    P_RELATEDNESS_IDX_BETA_MEAN_OO,
+    P_RELATEDNESS_IDX_KAPPA_MEAN_OO,
+    P_RELATEDNESS_IDX_ALPHA_MEAN_OO,
 
     P_RELATEDNESS_IDX_BETA,
     P_RELATEDNESS_IDX_KAPPA,
@@ -152,7 +165,8 @@ typedef struct {
     hdf_table_t tbl_intra_v;
     hdf_table_t tbl_intra_c;
 
-    hdf_table_t tbl_relatedness;
+    hdf_table_t tbl_relatedness_wg;
+    hdf_table_t tbl_relatedness_oo;
 
     // buffers for transferring inter-cellular statistics to inter- tables
     nvar_t *inter_stats;

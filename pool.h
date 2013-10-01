@@ -52,7 +52,8 @@ typedef struct {
     double *V;
     double *C;
 
-    double *R;
+    double *R_WG;
+    double *R_OO;
 
 
 } pool_t;

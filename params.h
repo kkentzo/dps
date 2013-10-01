@@ -39,7 +39,6 @@ typedef struct {
     int seed; // the seed of the RNG
     gboolean compete; // activate competition between 2 plasmid types 
                       // requires --load_from
-    gboolean relatedness; // calculate relatedness in stats
     int contenders; // the number of contenders (derived automatically by load_from)
 
     // Output parameters

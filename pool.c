@@ -57,7 +57,8 @@ pool_t *pool_new() {
     pool->V = calloc(P_INTRA_IDX_ALL, sizeof(double));
     pool->C = calloc(P_INTRA_IDX_ALL*(P_INTRA_IDX_ALL-1)/2, sizeof(double));
 
-    pool->R = calloc(3, sizeof(double));
+    pool->R_WG = calloc(P_PARAMS_IDX_ALL, sizeof(double));
+    pool->R_OO = calloc(P_PARAMS_IDX_ALL, sizeof(double));
 
     return pool;
     
@@ -79,7 +80,8 @@ void pool_free(pool_t *pool) {
     free(pool->M);
     free(pool->V);
     free(pool->C);
-    free(pool->R);
+    free(pool->R_WG);
+    free(pool->R_OO);
 
     // free the struct
     free(pool);
@@ -376,13 +378,33 @@ void pool_update(pool_t *pool, int step, void *_params) {
 
 	// write the relatedness stats to buffer
 	int i;
-	for (i=0; i<3; i++)
-	    pool->R[i] =			\
-		nvar_calc_covariance(pool->rstats, i, i+3, FALSE) /	\
-		nvar_calc_variance(pool->rstats, i+3, FALSE);
+	
+	for (i=0; i<P_PARAMS_IDX_ALL; i++) {
+	    // ==> whole group relatedness
+	    pool->R_WG[i] =				\
+		nvar_calc_covariance(pool->rstats,
+				     i,
+				     i + 2 * P_PARAMS_IDX_ALL,
+				     FALSE) /		\
+		nvar_calc_variance(pool->rstats,
+				   i + 2 * P_PARAMS_IDX_ALL,
+				   FALSE);
+	    // ==> other-only relatedness
+	    pool->R_OO[i] =				\
+		nvar_calc_covariance(pool->rstats,
+				     i + P_PARAMS_IDX_ALL,
+				     i + 2 * P_PARAMS_IDX_ALL,
+				     FALSE) /		\
+		nvar_calc_variance(pool->rstats,
+				   i + 2 * P_PARAMS_IDX_ALL,
+				   FALSE);
+	}
 	
 	    
-	hdf_table_append_record(&((logger_t *)params->logger)->tbl_relatedness, pool->R);
+	hdf_table_append_record(&((logger_t *)params->logger)->tbl_relatedness_wg,
+				pool->R_WG);
+	hdf_table_append_record(&((logger_t *)params->logger)->tbl_relatedness_oo,
+				pool->R_OO);
 
 	// reset the stats
 	nvar_reset(pool->stats);
