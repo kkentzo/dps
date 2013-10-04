@@ -2,3 +2,5 @@
 *.py
 *.h5
 test*
+*.png
+*.pdf

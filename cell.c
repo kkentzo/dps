@@ -524,23 +524,12 @@ void cell_update(cell_t *cell, pool_t *cpool, gboolean rdeath) {
 		}
 	    
 	    // calculate others-only (OO) means
-	    if (cell->rstats->n > plasmid->cn)
-		// there are more than one profiles in the cell
+	    if (cell->rstats->n > 1)
+		// exclude value of single plasmid from calculation of OO mean 
 		rvals[j + P_RELATEDNESS_IDX_BETA_MEAN_OO] =		\
 		    (cell->rstats->wsums[j + P_PARAMS_IDX_BETA] -	\
-		     (plasmid->cn * rvals[j + P_RELATEDNESS_IDX_BETA])) / \
-		    (cell->rstats->n - plasmid->cn);
-	    else if (cell->rstats->n == plasmid->cn) 
-		// there is only one profile in the host
-		// (which might be a single plasmid -- this case is dealt
-		//  with outside the plasmid parameter loop)
-		rvals[j + P_RELATEDNESS_IDX_BETA_MEAN_OO] =		\
-		    (cell->rstats->wsums[j + P_PARAMS_IDX_BETA] -	\
-		     (1 * rvals[j + P_RELATEDNESS_IDX_BETA])) / \
+		     (rvals[j + P_RELATEDNESS_IDX_BETA])) / \
 		    (cell->rstats->n - 1);
-	    else
-		// this shouldn't hold
-		assert(FALSE);
 	}
 
 
