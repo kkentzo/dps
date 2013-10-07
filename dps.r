@@ -1385,7 +1385,8 @@ dps.pp.experiment.parallel <- function( path, cores ) {
         for (name in names(r$dynamics$relatedness[[r.type]])) {
           if (is.null(results$relatedness[[r.type]][[name]])) 
             results$relatedness[[r.type]][[name]] <- array(NA, runs)
-          results$relatedness[[r.type]][[name]] <-
+          
+          results$relatedness[[r.type]][[name]][i.run] <-
             mean(r$dynamics$relatedness[[r.type]][[name]][seq.steps], na.rm=T)
           
         }
@@ -1539,7 +1540,7 @@ dps.pp.experiment.parallel <- function( path, cores ) {
                 c(results[["1"]]$M[[level]][[r.type]][[name]],
                   results[[as.character(i.pconj)]]$M[[level]][[r.type]][[name]])
               results[["1"]]$S[[level]][[r.type]][[name]] <-
-                c(results[["1"]]$M[[level]][[r.type]][[name]],
+                c(results[["1"]]$S[[level]][[r.type]][[name]],
                   results[[as.character(i.pconj)]]$S[[level]][[r.type]][[name]])
             }
                                

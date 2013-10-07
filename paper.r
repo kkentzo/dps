@@ -436,3 +436,18 @@ plot.fig8 <- function( results ) {
 
 
 
+## relatedness
+
+plot.relatedness <- function(results) {
+
+  wg.mean <- Reduce(cbind, results$M$relatedness$wg, c())
+
+  mplot(results$pconj, wg.mean,
+        xlab=expression(p[c]), ylab="", type="l",
+        log.take="x", main="Relatedness (whole-group)")
+  
+  legend("topleft", c(expression(beta), expression(kappa), expression(alpha)),
+         lwd=1, col=c("blue", "red", "green"))
+  
+}
+
