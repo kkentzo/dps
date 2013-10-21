@@ -871,7 +871,8 @@ dps.plot.relatedness <- function( results, dz=NULL, window.size=0,
     mplot(steps.range,
           cbind(dz[[name]]$r[steps.range],
                 dz[[name]]$r.oo[steps.range]),
-          main=name, xlab="Time", ylab="")
+          main=sprintf("Relatedness (%s)", name),
+          xlab="Time", ylab="")
     legend("bottomright", c("WG", "OO"),
            lwd=1, col=c("blue", "red"))
 
@@ -1520,7 +1521,7 @@ dps.pp.experiment.parallel <- function( path, cores ) {
       ## first, the PCONJ.VALUES
       results[["1"]]$pconj.values <- c(results[["1"]]$pconj.values,
                                        results[[as.character(i.pconj)]]$pconj.values)
-      ## second, the LEVELS (counters, global, inter, intra)
+      ## second, the LEVELS (counters, global, inter, intra, relatedness)
       for (level in names(results[["1"]]$M)) {
         if (level == "counters" || level == "custom") {
           for (name in names(results[["1"]]$M[[level]])) {
