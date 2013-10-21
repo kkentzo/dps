@@ -33,7 +33,13 @@ typedef struct {
     gboolean death;
     gboolean rdeath;
 
-    nvar_t *stats; // descriptive statistics for beta, kappa, alpha
+    // cell statistics (indexed by P_INTRA_IDX_*)
+    // do not include replication events
+    nvar_t *stats;
+    // cell statistics (indexed by P_PARAMS_IDX_*)
+    // they do include replication events
+    // (used for relatedness calculations)
+    nvar_t *rstats;
 
     params_t *params; // NOT OWNED BY THE CELL
 

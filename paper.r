@@ -436,3 +436,31 @@ plot.fig8 <- function( results ) {
 
 
 
+## relatedness
+
+plot.relatedness <- function(results) {
+
+  wg.mean <- data.frame(Reduce(cbind, results$M$relatedness$wg, c()))
+  oo.mean <- data.frame(Reduce(cbind, results$M$relatedness$oo, c()))
+
+  var.names <- c("beta", "kappa", "alpha")
+
+  names(wg.mean) <- var.names
+  names(oo.mean) <- var.names
+
+  layout(matrix(1:3, nrow=1))
+
+  for (var.name in var.names) {
+
+    mplot(results$pconj, cbind(wg.mean[[var.name]], oo.mean[[var.name]]),
+          xlab=expression(p[c]), ylab="", type="l",
+          log.take="x", main=sprintf("Relatedness (%s)", var.name))
+  
+    legend("bottomleft", c("whole-group", "others-only"),
+           lwd=1, col=c("blue", "red"))
+  }
+
+  layout(matrix(1))
+  
+}
+

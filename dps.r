@@ -340,8 +340,8 @@ dps.plot.cc.dists <- function( results, levels="inter", pairs=c("domg.beta", "do
 ## calculates and returns the 3 components of the price equation
 ## for both beta and kappa
 ## STEPS.RANGE is a 2-tuple
-dps.calc.price <- function(results, window.size=500,
-                           steps.range=NA, decompose=F, correlations=F)
+dps.calc.price <- function(results, window.size=500, steps.range=NA, 
+                           decompose=F, correlations=F, relatedness=T)
 {
 
   if (length(steps.range) != 2) 
@@ -357,13 +357,14 @@ dps.calc.price <- function(results, window.size=500,
 
     ## calculate and store transmission bias
     dz[[z.name]] <- data.frame(
-                      tbias=ma(results$dynamics$global$M[[sprintf("t%s", z.name)]][take.steps],
+                      tbias=ma(
+                        results$dynamics$global$M[[sprintf("t%s", z.name)]][take.steps],
                         window.size=window.size) / dz$fitness)
 
     ## calculate covariances
     for (level in c("global", "inter", "intra")) {
 
-      dz[[z.name]][[sprintf("%s", level)]] <-
+      dz[[z.name]][[level]] <-
         ma(dps.calc.association(results$dynamics[[level]],
                                 sprintf("%s.fitness", z.name),
                                 norm.by="",
@@ -386,6 +387,15 @@ dps.calc.price <- function(results, window.size=500,
 
     ## Calculate total selection
     dz[[z.name]][["total"]] <- dz[[z.name]]$global + dz[[z.name]]$tbias
+
+    ## Calculate relatedness
+    if (relatedness) {
+      dz[[z.name]]$r <- ma(results$dynamics$relatedness$wg[[z.name]][take.steps],
+                           window.size=window.size)
+      dz[[z.name]]$r.oo <- ma(results$dynamics$relatedness$oo[[z.name]][take.steps],
+                              window.size=window.size)
+    }
+
     
   }
 
@@ -500,7 +510,6 @@ dps.plot.price <- function( results, dz=NULL, window.size=0, steps.range=NA,
 dps.plot.price2 <- function( results, dz=NULL, window.size=0, steps.range=NA,
                              xlim=NA, bw.adjust=1 ) {
 
-  par.bak <- par(no.readonly=TRUE)
   layout(rbind(rep(1,4), matrix(2:9, ncol=4)))
 
   ## calculate price components??
@@ -596,7 +605,7 @@ dps.plot.price2 <- function( results, dz=NULL, window.size=0, steps.range=NA,
 
   }
 
-  par(par.bak)
+  layout(matrix(1))
 
 }
 
@@ -615,7 +624,6 @@ dps.plot.price.name <- function(results, dz, name, steps.range=NA,
   else
     steps.range <- steps.range[1]:steps.range[2]
 
-  par.bak <- par(no.readonly=TRUE)
   layout(matrix(1:2, ncol=1))
 
   name.expr <- switch(name,
@@ -676,7 +684,7 @@ dps.plot.price.name <- function(results, dz, name, steps.range=NA,
   legend(legend.loc, c("total", "inter", "intra", "tbias"),
          lwd=1, col=c("black", "blue", "red", "green"))
 
-  par(par.bak)
+  layout(matrix(1))
   
 }
 
@@ -816,6 +824,91 @@ dps.plot.price.components <- function(results, dz, steps.range=NA) {
 }
 
 
+
+
+
+
+
+
+## =========================================================================
+## plot the relatedness components (SORTED BY EVOLUTIONARY VARIABLES)
+## DZ can be either the output of dps.calc.price() or a results objects
+dps.plot.relatedness <- function( results, dz=NULL, window.size=0, 
+                                  steps.range=NA, xlim=NA, bw.adjust=1 ) {
+
+  layout(rbind(rep(1,3), matrix(2:4, ncol=3)))
+
+  ## calculate relatedness components??
+  if (is.null(dz))
+    dz <- dps.calc.price(results, window.size, steps.range=NA, relatedness=T)
+
+  ## calculate steps.range
+  if (length(steps.range) != 2) 
+    steps.range <- 1:nrow(dz$beta)
+  else
+    steps.range <- steps.range[1]:steps.range[2]
+
+  ## plot evolutionary dynamics of beta, kappa, alpha
+  plot.with.range(cbind(results$dynamics$global$M$beta[steps.range],
+                        results$dynamics$global$M$kappa[steps.range],
+                        results$dynamics$global$M$alpha[steps.range]),
+                  cbind(sqrt(results$dynamics$global$V$beta[steps.range]),
+                        sqrt(results$dynamics$global$V$kappa[steps.range]),
+                        sqrt(results$dynamics$global$V$alpha[steps.range])),
+                  x=steps.range,
+                  main="Plasmid Replication Parameters",
+                  col=c("blue", "red", "green"),
+                  xlab="Time", ylab="")
+  legend("topleft", c(expression(beta), expression(kappa), expression(alpha)),
+         lwd=1, col=c("blue", "red", "green"))
+
+
+
+  ## PLOT RELATEDNESS FOR EACH VARIABLE
+  for (name in c("beta", "kappa", "alpha")) {
+
+    ## plot relatedness time series
+    mplot(steps.range,
+          cbind(dz[[name]]$r[steps.range],
+                dz[[name]]$r.oo[steps.range]),
+          main=sprintf("Relatedness (%s)", name),
+          xlab="Time", ylab="")
+    legend("bottomright", c("WG", "OO"),
+           lwd=1, col=c("blue", "red"))
+
+    print(sprintf("%s | WG=%.3e | OO=%.3e", name,
+                  mean(dz[[name]]$r[steps.range] ,na.rm=T),
+                  mean(dz[[name]]$r.oo[steps.range] ,na.rm=T)))
+
+  }
+
+  layout(matrix(1))
+
+}
+
+
+
+## ====================================================================================
+## plot some basic features of the supplied RESULTS
+dps.plot.dynamics <- function( results ) {
+
+  ## store settings
+  layout(matrix(1))
+
+  ## plot plasmid replication parameters
+  plot.with.range(cbind(results$dynamics$global$M$beta,
+                        results$dynamics$global$M$kappa,
+                        results$dynamics$global$M$alpha),
+                  cbind(sqrt(results$dynamics$global$V$beta),
+                        sqrt(results$dynamics$global$V$kappa),
+                        sqrt(results$dynamics$global$V$alpha)),
+                  main="Plasmid Replication Parameters",
+                  col=c("blue", "red", "green"),
+                  xlab="Time", ylab="")
+  legend("topleft", c(expression(beta), expression(kappa), expression(alpha)),
+         lwd=1, col=c("blue", "red", "green"))
+
+}
 
 ## ====================================================================================
 ## plot some basic features of the supplied RESULTS
@@ -972,7 +1065,8 @@ dps.plot.all.parallel <- function( h5.path, png.path, cores ) {
       ## analyze results
       png(file.path(png.path, paste("results", r.id, "png", sep=".")),
           width=640, height=640, bg="white")
-      dps.analyze(r, window.size=500)
+      dps.plot.dynamics(r)
+      ##dps.analyze(r, window.size=500)
       dev.off()
 
       ## calculate DZ
@@ -1217,6 +1311,7 @@ dps.pp.experiment.parallel <- function( path, cores ) {
     pconj.values <- NA
 
     results <- list(counters=list(), ## automatic
+                    relatedness=list(), ## automatic
                     global=list(), ## automatic
                     inter=list(), ## automatic
                     intra=list(), ## automatic
@@ -1286,6 +1381,18 @@ dps.pp.experiment.parallel <- function( path, cores ) {
         
       }
 
+      ## process RELATEDNESS
+      for (r.type in names(r$dynamics$relatedness)) 
+        for (name in names(r$dynamics$relatedness[[r.type]])) {
+          if (is.null(results$relatedness[[r.type]][[name]])) 
+            results$relatedness[[r.type]][[name]] <- array(NA, runs)
+          
+          results$relatedness[[r.type]][[name]][i.run] <-
+            mean(r$dynamics$relatedness[[r.type]][[name]][seq.steps], na.rm=T)
+          
+        }
+      
+
       ## process the rest
       for (level in c("global", "inter", "intra"))
         for (stat in names(r$dynamics[[level]]))
@@ -1316,19 +1423,41 @@ dps.pp.experiment.parallel <- function( path, cores ) {
     }
 
     ## form aggregated results
-    results.agg <- list(M=list(counters=list(), custom=list()),
-                        S=list(counters=list(), custom=list()),
+    results.agg <- list(M=list(counters=list(),relatedness=list(), custom=list()),
+                        S=list(counters=list(), relatedness=list(), custom=list()),
                         pconj.values=pconj.values)
 
     ## aggregate the results into results.agg
     for (level in names(results)) {
 
       if (level == "counters" || level == "custom") {
+
         for (name in names(results[[level]])) {
           results.agg$M[[level]][[name]] <- mean(results[[level]][[name]], na.rm=T)
           results.agg$S[[level]][[name]] <- sd(results[[level]][[name]], na.rm=T)
         }
-      } else {
+
+        
+      } else if (level == "relatedness") {
+
+        for  (r.type in names(results[[level]])) {
+
+          if (is.null(results.agg$M[[level]][[r.type]])) {
+            results.agg$M[[level]][[r.type]] <- list()
+            results.agg$S[[level]][[r.type]] <- list()
+          }
+          
+          for (name in names(results[[level]][[r.type]])) {
+
+            results.agg$M[[level]][[r.type]][[name]] <-
+              mean(results[[level]][[r.type]][[name]], na.rm=T)
+            results.agg$S[[level]][[r.type]][[name]] <-
+              sd(results[[level]][[r.type]][[name]], na.rm=T)
+          }
+        }
+          
+      } else{
+
         for (stat in names(results[[level]])) {
           if (is.null(results.agg$M[[level]][[stat]])) {
             results.agg$M[[level]][[stat]] <- list()
@@ -1392,7 +1521,7 @@ dps.pp.experiment.parallel <- function( path, cores ) {
       ## first, the PCONJ.VALUES
       results[["1"]]$pconj.values <- c(results[["1"]]$pconj.values,
                                        results[[as.character(i.pconj)]]$pconj.values)
-      ## second, the LEVELS (counters, global, inter, intra)
+      ## second, the LEVELS (counters, global, inter, intra, relatedness)
       for (level in names(results[["1"]]$M)) {
         if (level == "counters" || level == "custom") {
           for (name in names(results[["1"]]$M[[level]])) {
@@ -1403,6 +1532,19 @@ dps.pp.experiment.parallel <- function( path, cores ) {
               c(results[["1"]]$S[[level]][[name]],
                 results[[as.character(i.pconj)]]$S[[level]][[name]])
           }
+        } else if (level == "relatedness") {
+
+          for (r.type in names(results[["1"]]$M[[level]]))
+            for (name in names(results[["1"]]$M[[level]][[r.type]])) {
+
+              results[["1"]]$M[[level]][[r.type]][[name]] <-
+                c(results[["1"]]$M[[level]][[r.type]][[name]],
+                  results[[as.character(i.pconj)]]$M[[level]][[r.type]][[name]])
+              results[["1"]]$S[[level]][[r.type]][[name]] <-
+                c(results[["1"]]$S[[level]][[r.type]][[name]],
+                  results[[as.character(i.pconj)]]$S[[level]][[r.type]][[name]])
+            }
+                               
         } else {
 
           for (stat in names(results[["1"]]$M[[level]]))
@@ -1835,6 +1977,25 @@ tttest <- function() {
   plot(delta.alpha, f)
 
   print(cor(delta.alpha, f))
+  
+}
+
+
+
+
+process.relatedness.adhoc <- function(path="relatedness") {
+
+  for (fname in c("0.12", "1.13", "2.8")) {
+
+    full.fname <- file.path(path, sprintf("results.%s.h5", fname))
+
+    r <- dps.load(full.fname)
+
+    dz <- dps.calc.price(r, 5000)
+
+    save(dz, file=file.path(path, sprintf("dz.%s.xdr", fname)))
+    
+  }
   
 }
 

@@ -40,7 +40,6 @@ params_t params = {
     NULL, // load_from
     0, // seed
     FALSE, // compete
-    FALSE, // relatedness
     1, // contenders
 
     // Output parameters

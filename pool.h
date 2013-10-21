@@ -38,16 +38,22 @@ typedef struct {
 
     nvar_t *stats; // pool statistics
 
+    // relatedness statistics
+    nvar_t *rstats;
+
     // the total copy number
     int cn;
 
     // the number of unique plasmid profiles
     int size;
 
-    // buffers for means, vars and covs
+    // buffers for means, vars and covs and relatedness
     double *M;
     double *V;
     double *C;
+
+    double *R_WG;
+    double *R_OO;
 
 
 } pool_t;
@@ -82,6 +88,9 @@ int pool_get_profile_cn(pool_t *pool, void *profile);
 
 // register intra-cellular stats
 void pool_register_cell_stats(pool_t *pool, nvar_t *stats);
+
+// register a plasmid in the relatedness stats
+void pool_register_plasmid_relatedness(pool_t *pool, double *values, int cn);
 
 // register the profile from within cell_update() (for computing transmission biases)
 void pool_register_profile(pool_t *pool, void *profile, int cn,
