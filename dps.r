@@ -1345,7 +1345,7 @@ dps.pp.experiment.parallel <- function( path, cores ) {
       pconj.values <- r$settings$pconj
 
       ## do we have extinction?
-      if (steps < r$settings$steps) 
+      if (steps < r$settings$steps && r$dynamics$counters$ptypes[steps] == 0) 
         results$custom$extinction[i.run] <- 1
 
       ## process CUSTOM elements
@@ -1990,34 +1990,50 @@ tttest <- function() {
 
 dps.pp.compare <- function(results.b, results.bka) {
 
-  layout(matrix(1:4, byrow=T, ncol=2))
+  layout(matrix(c(1:4, rep(5,2), 6:7), byrow=T, ncol=2))
 
   mplot(cbind(results.b$pconj, results.bka$pconj),
-        cbind(results.b$M$custom$div.all, results.bka$M$custom$div.all),
-        main="Host Division", xlab=expression(p[c]), ylab="",
+        cbind(results.b$M$custom$div.inf - results.b$M$custom$death,
+              results.bka$M$custom$div.inf - results.bka$M$custom$death),
+        main="Host Growth", xlab=expression(p[c]), ylab="",
         log.take="x", col=c("blue", "red"))
-  legend("bottomleft", c("NO-CNC", "CNC"),
+  legend("left", c("NO-CNC", "CNC"),
          lwd=1, col=c("blue", "red"))
 
   mplot(cbind(results.b$pconj, results.bka$pconj),
-        cbind(results.b$M$custom$death, results.bka$M$custom$death),
+        cbind(results.b$M$custom$death,
+              results.bka$M$custom$death),
         main="Host Death", xlab=expression(p[c]), ylab="",
         log.take="x", col=c("blue", "red"))
-  
-
-  mplot(cbind(results.b$pconj, results.bka$pconj),
-        cbind(results.b$M$custom$loss.cn, results.bka$M$custom$loss.cn),
-        main="Plasmid Loss", xlab=expression(p[c]), ylab="",
-        log.take="xy", col=c("blue", "red"))
-  
 
   mplot(cbind(results.b$pconj, results.bka$pconj),
         cbind(results.b$M$custom$cn, results.bka$M$custom$cn),
         main="Copy Number", xlab=expression(p[c]), ylab="",
         log.take="x", col=c("blue", "red"))
 
-  layout(matrix(1))
+  mplot(cbind(results.b$pconj, results.bka$pconj),
+        cbind(results.b$M$custom$inf, results.bka$M$custom$inf),
+        main="Infection", xlab=expression(p[c]), ylab="",
+        log.take="x", col=c("blue", "red"))
+
+  mplot(cbind(results.b$pconj, results.bka$pconj),
+        cbind(results.b$M$custom$loss.cn, results.bka$M$custom$loss.cn),
+        main="Seg Loss (per plasmid)", xlab=expression(p[c]), ylab="",
+        log.take="xy", col=c("blue", "red"))
+
+  mplot(cbind(results.b$pconj, results.bka$pconj),
+        cbind(results.b$M$custom$rep.cn, results.bka$M$custom$rep.cn),
+        main="Replication Rate (per plasmid)", ylab="", xlab=expression(p[c]),
+        log.take="x")
   
+  mplot(cbind(results.b$pconj, results.bka$pconj),
+        ##cbind(results.b$M$global$M$ht, results.bka$M$global$M$ht),
+        cbind(results.b$M$custom$ht.cn, results.bka$M$custom$ht.cn),
+        main="Conjugation Rate (per plasmid)", ylab="", xlab=expression(p[c]),
+        log.take="x")
+
+  
+  layout(matrix(1))
   
 }
 
