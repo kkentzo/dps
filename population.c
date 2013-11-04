@@ -155,7 +155,7 @@ void run(params_t *params) {
 	// are plasmid extinct??
 	if ((int)params->pool->cn == 0) {
 	    printf("step %d | Plasmids are exinct!\n", params->step);
-	    break;
+	    global_abort = TRUE;
 	}
 
 	// is competition over??

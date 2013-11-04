@@ -301,7 +301,6 @@ plot.fig6 <- function(results) {
 plot.fig7 <- function(results) {
 
 
-  par.bak <- par(no.readonly=TRUE)
   layout(matrix(1:3, nrow=1, byrow=T))
 
 
@@ -378,7 +377,7 @@ plot.fig7 <- function(results) {
     }
   }
 
-  par(par.bak)    
+  layout(matrix(1))
 
 }
 

@@ -26,7 +26,7 @@ dps.load <- function( fname ) {
   results <- hdf5load(fname, load=F, tidy=T)
 
   results
-                         
+  
 
 }
 
@@ -70,7 +70,7 @@ dps.aggregate <- function( path ) {
 
         results$dynamics[[level]][[tp]] <-
           results$dynamics[[level]][[tp]] +
-          r$dynamics[[level]][[tp]]
+            r$dynamics[[level]][[tp]]
 
       }
     
@@ -228,16 +228,16 @@ dps.calc.association <- function( dynamics, names, norm.by="xy", plot=F, steps.r
 
 ## ===========================================================================================
 ## plot the histograms of the correlation coefficient time series
-# for the requested LEVEL and PAIRS
+                                        # for the requested LEVEL and PAIRS
 ## specify an MA.N > 0 to calculate the moving average of the CC time series
 
 dps.plot.cc.dists <- function( results, levels="inter", pairs=c("domg.beta", "domg.kappa"), 
-                               legends=NULL, xlab="Correlation Coefficient",
-                               ylab="Density", xlim=c(-1,1),
-                               main="Distribution of Correlation Coefficients", ma.n = 0, 
-                               say.level=T, xaxt="s", draw.legend=T, leg.loc="topright",
-                               draw.IQR=T,
-                               norm.by="xy", break.step=0.01, steps.range=NA) {
+                              legends=NULL, xlab="Correlation Coefficient",
+                              ylab="Density", xlim=c(-1,1),
+                              main="Distribution of Correlation Coefficients", ma.n = 0, 
+                              say.level=T, xaxt="s", draw.legend=T, leg.loc="topright",
+                              draw.IQR=T,
+                              norm.by="xy", break.step=0.01, steps.range=NA) {
 
   n <- length(pairs)
 
@@ -309,13 +309,13 @@ dps.plot.cc.dists <- function( results, levels="inter", pairs=c("domg.beta", "do
     if (draw.IQR) {
       xx <- c(approx(x=dd[[i]]$x, y=dd[[i]]$y, xout=qq[[i]][2])$x,
               dd[[i]]$x[match(which(dd[[i]]$x >= qq[[i]][2]),
-                                 which(dd[[i]]$x <= qq[[i]][4]))],
+                              which(dd[[i]]$x <= qq[[i]][4]))],
               approx(x=dd[[i]]$x, y=dd[[i]]$y, xout=qq[[i]][4])$x)
       xx <- xx[which(! is.na(xx))]
 
       yy <- c(approx(x=dd[[i]]$x, y=dd[[i]]$y, xout=qq[[i]][2])$y,
               dd[[i]]$y[match(which(dd[[i]]$x >= qq[[i]][2]),
-                                    which(dd[[i]]$x <= qq[[i]][4]))],
+                              which(dd[[i]]$x <= qq[[i]][4]))],
               approx(x=dd[[i]]$x, y=dd[[i]]$y, xout=qq[[i]][4])$y)
       yy <- yy[which(! is.na(yy))]
       polygon(c(xx, rev(xx)), c(yy, rep(0, length(yy))), border=NA,
@@ -350,16 +350,16 @@ dps.calc.price <- function(results, window.size=500, steps.range=NA,
     take.steps <- steps.range[1]:steps.range[2]
   
   dz <- list(fitness=ma(results$dynamics$global$M$fitness[take.steps],
-               window.size=window.size),
+                 window.size=window.size),
              window.size=window.size)
 
   for (z.name in c("beta", "kappa", "alpha")) {
 
     ## calculate and store transmission bias
     dz[[z.name]] <- data.frame(
-                      tbias=ma(
-                        results$dynamics$global$M[[sprintf("t%s", z.name)]][take.steps],
-                        window.size=window.size) / dz$fitness)
+        tbias=ma(
+            results$dynamics$global$M[[sprintf("t%s", z.name)]][take.steps],
+            window.size=window.size) / dz$fitness)
 
     ## calculate covariances
     for (level in c("global", "inter", "intra")) {
@@ -375,12 +375,12 @@ dps.calc.price <- function(results, window.size=500, steps.range=NA,
 
         for (name in c("nr", "ht", "death")) {
 
-            dz[[z.name]][[sprintf("%s.%s", level, name)]] <-
-              ma(dps.calc.association(results$dynamics[[level]],
-                                      sprintf("%s.%s", z.name, name),
-                                      norm.by="",
-                                      steps.range=steps.range),
-                 window.size=window.size) / dz$fitness
+          dz[[z.name]][[sprintf("%s.%s", level, name)]] <-
+            ma(dps.calc.association(results$dynamics[[level]],
+                                    sprintf("%s.%s", z.name, name),
+                                    norm.by="",
+                                    steps.range=steps.range),
+               window.size=window.size) / dz$fitness
         }
       }
     }
@@ -426,7 +426,7 @@ dps.calc.price <- function(results, window.size=500, steps.range=NA,
 ## DZ can be either the output of dps.calc.price() or a results objects
 ## use FITNESS.POSTFIX="1" to use fitness1 and "2" to use fitness2
 dps.plot.price <- function( results, dz=NULL, window.size=0, steps.range=NA,
-                            fitness.postfix="", xlim=NA, bw.adjust=1 ) {
+                           fitness.postfix="", xlim=NA, bw.adjust=1 ) {
 
   par.bak <- par(no.readonly=TRUE)
   layout(rbind(rep(1,4), matrix(2:9, ncol=4)))
@@ -470,7 +470,7 @@ dps.plot.price <- function( results, dz=NULL, window.size=0, steps.range=NA,
     mplot(steps.range, cbind(b, k, a), xlab="Time",
           main=sprintf("%s%s", level, fitness.postfix))
     abline(h=0)
-          
+    
 
     ## plot densities
     b <- density(b, adjust=bw.adjust, na.rm=T)
@@ -508,7 +508,7 @@ dps.plot.price <- function( results, dz=NULL, window.size=0, steps.range=NA,
 ## DZ can be either the output of dps.calc.price() or a results objects
 ## use FITNESS.POSTFIX="1" to use fitness1 and "2" to use fitness2
 dps.plot.price2 <- function( results, dz=NULL, window.size=0, steps.range=NA,
-                             xlim=NA, bw.adjust=1 ) {
+                            xlim=NA, bw.adjust=1 ) {
 
   layout(rbind(rep(1,4), matrix(2:9, ncol=4)))
 
@@ -834,7 +834,7 @@ dps.plot.price.components <- function(results, dz, steps.range=NA) {
 ## plot the relatedness components (SORTED BY EVOLUTIONARY VARIABLES)
 ## DZ can be either the output of dps.calc.price() or a results objects
 dps.plot.relatedness <- function( results, dz=NULL, window.size=0, 
-                                  steps.range=NA, xlim=NA, bw.adjust=1 ) {
+                                 steps.range=NA, xlim=NA, bw.adjust=1 ) {
 
   layout(rbind(rep(1,3), matrix(2:4, ncol=3)))
 
@@ -1192,7 +1192,7 @@ dps.plot.joint.dist <- function( results, pair="bk", fparts=NA, lv=15 ) {
 
   if (all(is.na(fparts)))
     fparts <- 1:dim(results$histograms[[pair]]$z)[1]
-    
+  
   steps.per.fpart <- results$settings$steps %/% dim(results$histograms[[pair]]$z)[1]
   n.rows <- floor(sqrt(length(fparts)))
   n.cols <- length(fparts) %/% n.rows + ifelse(length(fparts) %% n.rows, 1, 0)
@@ -1202,7 +1202,7 @@ dps.plot.joint.dist <- function( results, pair="bk", fparts=NA, lv=15 ) {
   levels <- pretty(results$histograms[[pair]]$z[fparts,,], lv)
 
   for (fpart in fparts) {
-  
+    
     z <- results$histograms[[pair]]$z[fpart,,] / sum(results$histograms[[pair]]$z[fpart,,])
 
     image(x, y, z, col=colorpanel(length(levels), low="white", high="red"),
@@ -1266,7 +1266,7 @@ dps.pp.experiment.parallel <- function( path, cores ) {
     pos <- switch(extract.digit, pconj=2, run=1, NA)
 
     as.numeric(tokens[length(tokens) - pos])
-  
+    
   }
 
   ## get the file names of all the results 
@@ -1316,17 +1316,18 @@ dps.pp.experiment.parallel <- function( path, cores ) {
                     inter=list(), ## automatic
                     intra=list(), ## automatic
                     custom=list(
-                      div.inf=array(NA, runs),
-                      div.all=array(NA, runs),
-                      death=array(NA, runs),
-                      cn=array(NA, runs),
-                      rep.cn=array(NA, runs),
-                      rep.n=array(NA, runs),
-                      ht.cn=array(NA, runs),
-                      ht.n=array(NA, runs),
-                      loss.cn=array(NA, runs),
-                      loss.n=array(NA, runs),
-                      inf=array(NA, runs)))
+                        div.inf=array(NA, runs),
+                        div.all=array(NA, runs),
+                        death=array(NA, runs),
+                        extinction=array(0, runs),
+                        cn=array(NA, runs),
+                        rep.cn=array(NA, runs),
+                        rep.n=array(NA, runs),
+                        ht.cn=array(NA, runs),
+                        ht.n=array(NA, runs),
+                        loss.cn=array(NA, runs),
+                        loss.n=array(NA, runs),
+                        inf=array(NA, runs)))
 
     
     for (i.run in 1:runs) {
@@ -1342,6 +1343,10 @@ dps.pp.experiment.parallel <- function( path, cores ) {
 
       ## add value of gamma to results (as an atomic value)
       pconj.values <- r$settings$pconj
+
+      ## do we have extinction?
+      if (steps < r$settings$steps) 
+        results$custom$extinction[i.run] <- 1
 
       ## process CUSTOM elements
       results$custom$div.inf[i.run] <- mean(r$dynamics$counters$div.inf[seq.steps] /
@@ -1455,7 +1460,7 @@ dps.pp.experiment.parallel <- function( path, cores ) {
               sd(results[[level]][[r.type]][[name]], na.rm=T)
           }
         }
-          
+        
       } else{
 
         for (stat in names(results[[level]])) {
@@ -1477,7 +1482,7 @@ dps.pp.experiment.parallel <- function( path, cores ) {
     results.agg
     
   }  
-    
+  
 
 
 
@@ -1544,7 +1549,7 @@ dps.pp.experiment.parallel <- function( path, cores ) {
                 c(results[["1"]]$S[[level]][[r.type]][[name]],
                   results[[as.character(i.pconj)]]$S[[level]][[r.type]][[name]])
             }
-                               
+          
         } else {
 
           for (stat in names(results[["1"]]$M[[level]]))
@@ -1561,7 +1566,7 @@ dps.pp.experiment.parallel <- function( path, cores ) {
       }
     }
   }
-    
+  
   ## form results
   results <- results[["1"]]
 
@@ -1651,7 +1656,7 @@ dps.pp.plot.price <- function(results) {
     y <- cbind(results$M[[level]]$C[[sprintf("beta.fitness%s", fitness.postfix)]],
                results$M[[level]]$C[[sprintf("kappa.fitness%s", fitness.postfix)]],
                results$M[[level]]$C[[sprintf("alpha.fitness%s", fitness.postfix)]])
-      
+    
     mplot(x, y, main=sprintf("%s selection %s", level, fitness.postfix), log.take="x")
     decorate.log("x")
     abline(h=0)
@@ -1980,6 +1985,41 @@ tttest <- function() {
   
 }
 
+
+
+
+dps.pp.compare <- function(results.b, results.bka) {
+
+  layout(matrix(1:4, byrow=T, ncol=2))
+
+  mplot(cbind(results.b$pconj, results.bka$pconj),
+        cbind(results.b$M$custom$div.all, results.bka$M$custom$div.all),
+        main="Host Division", xlab=expression(p[c]), ylab="",
+        log.take="x", col=c("blue", "red"))
+  legend("bottomleft", c("NO-CNC", "CNC"),
+         lwd=1, col=c("blue", "red"))
+
+  mplot(cbind(results.b$pconj, results.bka$pconj),
+        cbind(results.b$M$custom$death, results.bka$M$custom$death),
+        main="Host Death", xlab=expression(p[c]), ylab="",
+        log.take="x", col=c("blue", "red"))
+  
+
+  mplot(cbind(results.b$pconj, results.bka$pconj),
+        cbind(results.b$M$custom$loss.cn, results.bka$M$custom$loss.cn),
+        main="Plasmid Loss", xlab=expression(p[c]), ylab="",
+        log.take="xy", col=c("blue", "red"))
+  
+
+  mplot(cbind(results.b$pconj, results.bka$pconj),
+        cbind(results.b$M$custom$cn, results.bka$M$custom$cn),
+        main="Copy Number", xlab=expression(p[c]), ylab="",
+        log.take="x", col=c("blue", "red"))
+
+  layout(matrix(1))
+  
+  
+}
 
 
 
