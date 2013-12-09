@@ -226,113 +226,6 @@ dps.calc.association <- function( dynamics, names, norm.by="xy", plot=F, steps.r
 
 
 
-## ====================================================================================
-## plot the histograms of the correlation coefficient time series
-                                        # for the requested LEVEL and PAIRS
-## specify an MA.N > 0 to calculate the moving average of the CC time series
-
-dps.plot.cc.dists <- function( results, levels="inter",
-                              pairs=c("domg.beta", "domg.kappa"), 
-                              legends=NULL, xlab="Correlation Coefficient",
-                              ylab="Density", xlim=c(-1,1),
-                              main="Distribution of Correlation Coefficients", ma.n = 0, 
-                              say.level=T, xaxt="s", draw.legend=T, leg.loc="topright",
-                              draw.IQR=T,
-                              norm.by="xy", break.step=0.01, steps.range=NA) {
-
-  n <- length(pairs)
-
-  if (length(levels) == 1)
-    levels <- rep(levels, n)
-
-  if (length(steps.range) == 1)
-    steps.range <- 1:nrow(results$dynamics$inter$M)
-
-  ## calc correlation coefficients
-  if (ma.n > 0)
-    cc <- lapply(1:n, function(i) ma(dps.calc.association(results$dynamics[[levels[[i]]]], 
-                                                          pairs[[i]],
-                                                          norm.by=norm.by)[steps.range],
-                                     window.size=ma.n))
-  else
-    cc <- lapply(1:n, function(i) dps.calc.association(results$dynamics[[levels[[i]]]],
-                                                       pairs[[i]],
-                                                       norm.by=norm.by)[steps.range])
-
-  ## print the data summary
-  lapply(cc, function(ccc) print(mean(ccc, na.rm=T)))
-
-  ## calculate distribution quantiles
-  qq <- lapply(cc, function(ccc) quantile(ccc, na.rm=T, names=F))
-
-  ## calculate densities of CC
-  dd <- lapply(cc, function(ccc) density(ccc, na.rm=T))
-
-  ## figure out ylim
-  ylim <- range(Reduce(c, lapply(dd, function(ddd) range(ddd$y, na.rm=T))))
-
-  colors <- c("blue", "red", "green", "black")
-
-  if (length(legends) != n) 
-    legends <- sapply(pairs, function(x) x)
-
-  ## plot histograms
-  for (i in 1:length(cc)) {
-
-    if (i == 1) {
-      plot(dd[[i]]$x, dd[[i]]$y, t="l", col=colors[i],
-           xlim=xlim, ylim=ylim, xlab=xlab, ylab=ylab, main=main, xaxt=xaxt)
-      
-      abline(v=0)
-
-      if (draw.legend) {
-        legend(leg.loc, legends, cex=1.2,
-               lwd=1, box.lwd=0, col=colors[1:n])
-      }
-
-      ## draw only ticks??
-      if (xaxt == "n") {
-
-        major.ticks <- axTicks(1)
-        axis(1, lwd=1, at=major.ticks, labels=rep("", length(major.ticks)))
-        
-      }
-
-      ## legend("topright", c(expression(paste(paste(Delta, Omega), ',', bar(beta))),
-      ##                      expression(paste(paste(Delta, Omega), ',', bar(kappa)))),
-      ##        lwd=1, pch=1, box.lwd=0, col=c("blue", "red"))
-
-    } else {
-      lines(dd[[i]]$x, dd[[i]]$y, col=colors[i])
-    }
-
-    ## === plot IQRs ===
-    if (draw.IQR) {
-      xx <- c(approx(x=dd[[i]]$x, y=dd[[i]]$y, xout=qq[[i]][2])$x,
-              dd[[i]]$x[match(which(dd[[i]]$x >= qq[[i]][2]),
-                              which(dd[[i]]$x <= qq[[i]][4]))],
-              approx(x=dd[[i]]$x, y=dd[[i]]$y, xout=qq[[i]][4])$x)
-      xx <- xx[which(! is.na(xx))]
-
-      yy <- c(approx(x=dd[[i]]$x, y=dd[[i]]$y, xout=qq[[i]][2])$y,
-              dd[[i]]$y[match(which(dd[[i]]$x >= qq[[i]][2]),
-                              which(dd[[i]]$x <= qq[[i]][4]))],
-              approx(x=dd[[i]]$x, y=dd[[i]]$y, xout=qq[[i]][4])$y)
-      yy <- yy[which(! is.na(yy))]
-      polygon(c(xx, rev(xx)), c(yy, rep(0, length(yy))), border=NA,
-              col=adjustcolor(colors[i], alpha.f=0.3))
-    }
-
-  }
-
-  ## ## QQ Plots
-  ## qqnorm(cc.domg.beta, col="blue")
-  ## qqline(cc.domg.beta)
-  
-
-}
-
-
 
 
 
@@ -429,7 +322,6 @@ dps.calc.price <- function(results, window.size=500, steps.range=NA,
 dps.plot.price <- function( results, dz=NULL, window.size=0, steps.range=NA,
                            fitness.postfix="", xlim=NA, bw.adjust=1 ) {
 
-  par.bak <- par(no.readonly=TRUE)
   layout(rbind(rep(1,4), matrix(2:9, ncol=4)))
 
   ## calculate price components??
@@ -496,7 +388,7 @@ dps.plot.price <- function( results, dz=NULL, window.size=0, steps.range=NA,
 
   }
 
-  par(par.bak)
+  layout(matrix(1))
 
 }
 
@@ -702,7 +594,6 @@ dps.plot.price.prediction <- function(results, steps.range=NA) {
     steps.range <- steps.range[1]:steps.range[2]
   
 
-  par.bak <- par(no.readonly=TRUE)
   layout(matrix(1:3, ncol=1, byrow=T))
 
   ## calculate price components for window size 0
@@ -727,7 +618,7 @@ dps.plot.price.prediction <- function(results, steps.range=NA) {
     
   }
 
-  par(par.bak)
+  layout(matrix(1))
   
 }
 
@@ -747,8 +638,6 @@ dps.plot.price.equilibrium <- function(results, dz, steps.range=NA) {
   ## calculate DZ
   ##dz <- dps.calc.price(results, 0)
 
-  ## store settings
-  par.bak <- par(no.readonly=TRUE)
   layout(matrix(1:3, nrow=1))
 
   for (name in c("beta", "kappa", "alpha")) {
@@ -786,8 +675,7 @@ dps.plot.price.equilibrium <- function(results, dz, steps.range=NA) {
     
   }
 
-
-  par(par.bak)
+  layout(matrix(1))
   
 }
 
@@ -803,7 +691,6 @@ dps.plot.price.components <- function(results, dz, steps.range=NA) {
   else
     steps.range <- steps.range[1]:steps.range[2]
 
-  par.bak <- par(no.readonly=TRUE)
   layout(matrix(1:12, ncol=4, byrow=T))
 
   for (v.name in c("beta", "kappa", "alpha")) {
@@ -821,7 +708,8 @@ dps.plot.price.components <- function(results, dz, steps.range=NA) {
     
   }
 
-  par(par.bak)
+  layout(matrix(1))
+  
 }
 
 
@@ -911,54 +799,13 @@ dps.plot.dynamics <- function( results ) {
 
 }
 
-## ====================================================================================
-## plot some basic features of the supplied RESULTS
-dps.analyze <- function( results, window.size=500 ) {
-
-  ## store settings
-  par.bak <- par(no.readonly=TRUE)
-  par(mfrow=c(2,2), cex.lab=1.2)
-
-
-  ## plot plasmid replication parameters
-  plot.with.range(cbind(results$dynamics$global$M$beta,
-                        results$dynamics$global$M$kappa,
-                        results$dynamics$global$M$alpha),
-                  cbind(sqrt(results$dynamics$global$V$beta),
-                        sqrt(results$dynamics$global$V$kappa),
-                        sqrt(results$dynamics$global$V$alpha)),
-                  main="Plasmid Replication Parameters",
-                  col=c("blue", "red", "green"),
-                  xlab="Time", ylab="")
-  legend("topleft", c(expression(beta), expression(kappa), expression(alpha)),
-         lwd=1, col=c("blue", "red", "green"))
-
-  ## plot average beta/kappa
-  plot.with.range(results$dynamics$global$M$bk, sqrt(results$dynamics$global$V$bk),
-                  main="Plasmid Competitiveness", xlab="Time", ylab="")
-  abline(h=0)
-
-  ## plot inter-cellular densities
-  dps.plot.cc.dists(results, level="inter", pairs=list("domg.dev", "dev.beta", "dev.kappa"),
-                    xlim=c(-1, 1))
-
-  ## plot cc of domg and (beta, kappa) -- INTER
-  dps.plot.cc.dists(results, level="inter", pairs=list("domg.beta", "domg.kappa"),
-                    xlim=c(-0.7, 0.7))
-  
-  par(par.bak)
-  
-}
-
-
-
 
 
 ## ============================================================================
-dps.analyze.2 <- function(results, window.size=1000) {
+## plot an overview of RESULTS
+dps.analyze <- function(results, window.size=1000) {
 
   ## store settings
-  par.bak <- par(no.readonly=TRUE)
   layout(matrix(c(1,1,2:5), ncol=2, byrow=T))
 
 
@@ -1001,7 +848,7 @@ dps.analyze.2 <- function(results, window.size=1000) {
   plot(ht.rate, col="blue", t="l", xlab="Time", ylab="",
        main="Average HT Rate")
 
-  par(par.bak)
+  layout(matrix(1))
   
   
 }
@@ -1215,6 +1062,8 @@ dps.plot.joint.dist <- function( results, pair="bk", fparts=NA, lv=15 ) {
     abline(h=y, lty="dotted", lwd=0.5)
 
   }
+
+  layout(matrix(1))
 
 }
 
@@ -1641,9 +1490,6 @@ dps.pp.plot <- function(results, type="M", level="inter", name="bk",
 
 dps.pp.plot.price <- function(results) {
 
-  par.bak <- par(no.readonly=T)
-
-  ##layout(matrix(1:12, ncol=3, byrow=T))
   layout(matrix(1:6, ncol=3))
 
   x <- results$pconj.values
@@ -1698,10 +1544,7 @@ dps.pp.plot.price <- function(results) {
   decorate.log("x")
   abline(h=0)
   
-  
-  
-
-  par(par.bak)
+  layout(matrix(1))
   
 }
 
@@ -1711,8 +1554,6 @@ dps.pp.plot.price <- function(results) {
 
 dps.pp.plot.price.components <- function(results, name) {
 
-
-  par.bak <- par(no.readonly=TRUE)
   layout(matrix(1:4, nrow=1, byrow=T))
 
   for (fname in c("fitness", "nr", "ht", "death")) {
@@ -1749,7 +1590,8 @@ dps.pp.plot.price.components <- function(results, name) {
 
   }
 
-  par(par.bak)
+  layout(matrix(1))
+  
 }
 
 
