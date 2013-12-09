@@ -8,9 +8,9 @@
 #include <gsl/gsl_histogram2d.h>
 #include <gsl/gsl_rng.h>
 
-#include "../utils/clib.h"
-#include "../utils/nvar.h"
-#include "../utils/qhdf.h"
+#include "../../utils/clib.h"
+#include "../../utils/nvar.h"
+#include "../../utils/qhdf.h"
 
 #include "pool.h"
 

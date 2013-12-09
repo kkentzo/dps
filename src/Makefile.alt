@@ -1,0 +1,55 @@
+# project name (generate executable with this name)
+TARGET   = dps
+
+CC       = gcc
+# compiling flags here
+CFLAGS   = -std=c99 -Wall -I.
+
+LINKER   = gcc -o
+# linking flags here
+#LFLAGS   = -Wall -I. -lm
+LFLAGS=-I. -lgsl -lgslcblas -lhdf5 -lhdf5_hl -lm `pkg-config --cflags --libs glib-2.0`
+
+# change these to set the proper directories where each files shoould be
+SRCDIR   = src
+OBJDIR   = obj
+BINDIR   = bin
+LIBDIR   = ../utils
+
+
+SOURCES  := $(wildcard $(SRCDIR)/*.c)
+LIB_SOURCES := $(LIBDIR)/clib.c $(LIBDIR)/sampling.c $(LIBDIR)/distribution.c $(LIBDIR)/nvar.c $(LIBDIR)/qhdf.c $(LIBDIR)/bitvector.c
+INCLUDES := $(wildcard $(SRCDIR)/*.h)
+LIB_INCLUDES := $(wildcard $(LIBDIR)/*.h)
+OBJECTS  := $(SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
+rm       = rm -f
+
+
+$(BINDIR)/$(TARGET): $(OBJECTS)
+	@$(LINKER) $@ $(LFLAGS) $(INCLUDES) $(LFLAGS) $(OBJECTS)
+	@echo "Linking complete!"
+
+$(OBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.c
+	@$(CC) $(CFLAGS) $(LFLAGS) -c $< -o $@
+	@echo "Compiled "$<" successfully!"
+
+.PHONEY: clean
+clean:
+	@$(rm) $(OBJECTS)
+	@echo "Cleanup complete!"
+
+.PHONEY: remove
+remove: clean
+	@$(rm) $(BINDIR)/$(TARGET)
+	@echo "Executable removed!"
+
+
+# SRC_DIR=./src
+# UTILS_DIR=../utils
+
+# CC=gcc
+# CFLAGS=-Wall -g -I$(SRC_DIR) -I$(UTILS_DIR)# -pg
+# LDFLAGS=-lgsl -lgslcblas -lhdf5 -lhdf5_hl `pkg-config --cflags --libs glib-2.0`
+
+
+# dps: $(SRC_DIR)/*.c $(UTILS_DIR)/clib.c $(UTILS_DIR)/sampling.c $(UTILS_DIR)/distribution.c $(UTILS_DIR)/nvar.c $(UTILS_DIR)/qhdf.c $(UTILS_DIR)/bitvector.c

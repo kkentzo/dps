@@ -13,12 +13,12 @@
 #include <gsl/gsl_histogram.h>
 #include <gsl/gsl_histogram2d.h>
 
-#include "../utils/sampling.h"
-#include "../utils/distribution.h"
-#include "../utils/clib.h"
-#include "../utils/bitvector.h"
-#include "../utils/nvar.h"
-#include "../utils/qhdf.h"
+#include "../../utils/sampling.h"
+#include "../../utils/distribution.h"
+#include "../../utils/clib.h"
+#include "../../utils/bitvector.h"
+#include "../../utils/nvar.h"
+#include "../../utils/qhdf.h"
 
 #include "pool.h"
 

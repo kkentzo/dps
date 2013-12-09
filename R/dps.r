@@ -226,12 +226,13 @@ dps.calc.association <- function( dynamics, names, norm.by="xy", plot=F, steps.r
 
 
 
-## ===========================================================================================
+## ====================================================================================
 ## plot the histograms of the correlation coefficient time series
                                         # for the requested LEVEL and PAIRS
 ## specify an MA.N > 0 to calculate the moving average of the CC time series
 
-dps.plot.cc.dists <- function( results, levels="inter", pairs=c("domg.beta", "domg.kappa"), 
+dps.plot.cc.dists <- function( results, levels="inter",
+                              pairs=c("domg.beta", "domg.kappa"), 
                               legends=NULL, xlab="Correlation Coefficient",
                               ylab="Density", xlim=c(-1,1),
                               main="Distribution of Correlation Coefficients", ma.n = 0, 
@@ -2034,6 +2035,91 @@ dps.pp.compare <- function(results.b, results.bka) {
 
   
   layout(matrix(1))
+  
+}
+
+
+
+
+## compares OO relatedness between NO-CNC and CNC simulations
+dps.pp.compare.relatedness <- function(results.b, results.bka) {
+
+  var.names <- c("beta", "kappa", "alpha")
+
+  ## form data frames
+  r.nocnc.mean <- data.frame(Reduce(cbind, results.b$M$relatedness$oo, c()))
+  r.cnc.mean <- data.frame(Reduce(cbind, results.bka$M$relatedness$oo, c()))
+
+  ## rename columns
+  names(r.nocnc.mean) <- var.names
+  names(r.cnc.mean) <- var.names
+
+  layout(matrix(1:3, nrow=1))
+
+  for (var.name in var.names) {
+
+    mplot(cbind(results.b$pconj, results.bka$pconj),
+          cbind(r.nocnc.mean[[var.name]], r.cnc.mean[[var.name]]),
+          xlab=expression(p[c]), ylab="", type="l",
+          log.take="x", main=sprintf("Relatedness (%s)", var.name),
+          col=c("blue", "red"))
+
+    if (var.name == "beta") {
+      legend("bottomleft", c("NO-CNC", "CNC"),
+             lwd=1, col=c("blue", "red"))
+    }
+  }
+
+  layout(matrix(1))
+  
+}
+
+
+
+dps.pp.plot.price.beta <- function(results.b) {
+
+    inter <- cbind(sapply(c("fitness", "nr", "ht", "death"),
+                          function (fname)
+                          results.b$M$inter$C[[sprintf("beta.%s", fname)]],
+                          USE.NAMES=F))
+    
+    intra <- cbind(sapply(c("fitness", "nr", "ht", "death"),
+                          function (fname)
+                          results.b$M$intra$C[[sprintf("beta.%s", fname)]],
+                          USE.NAMES=F))
+
+    tbias <- results.b$M$global$M$tbeta
+
+    ## change signs in DEATH columns
+    inter[,4] <- - inter[,4]
+    intra[,4] <- - intra[,4]
+
+    mplot(results.b$pconj.values,
+          cbind(inter, intra, tbias), 
+          col=c(rep("blue",4), rep("red",4), "green"),  log.take="x",
+          main=expression(paste("Selection on ", beta, " (x", 10^-4,")")), 
+          xlab=expression(p[c]), yaxt="n", ylim=c(-1e-4, 1e-4),
+          cex.main=2.5, cex.lab=2, cex.axis=2, ltype=1:4)
+    axis(2, at=seq(-1e-4, 1e-4, 1e-4), labels=c(seq(-1, 1, 1)),
+         cex.axis=2)
+    abline(h=0)
+
+    legend("topleft",
+           c("Total Selection (intra)",
+             expression(paste("Selection due to ", n^R, " (intra)")),
+             expression(paste("Selection due to ", n^H, " (intra)")),
+             expression(paste("Selection due to ", n^D, " (intra)"))),
+           lwd=1, lty=1:4, bty="n", cex=2, col="red")
+    legend("bottomleft",
+           c("Total Selection (inter)",
+             expression(paste("Selection due to ", n^R, " (inter)")),
+             expression(paste("Selection due to ", n^H, " (inter)")),
+             expression(paste("Selection due to ", n^D, " (inter)"))),
+           lwd=1, lty=1:4, bty="n", cex=2, col="blue")
+    legend("topright", "Transmission Bias", ##inset=c(0, 0.35),
+           lwd=1, bty="n", cex=2, col="green")
+    
+  
   
 }
 

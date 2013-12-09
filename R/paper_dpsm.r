@@ -14,50 +14,298 @@ source('dps.r')
 ## for DZ use load("/data/dpsm/htg.bka/dz.full.2.1.xdr")
 
 ## || results for varying pconj ||
-## for RESULTS use results <- dps.pp.load('/data/dpsm/htg/results.xdr')
+## for RESULTS.B use results <- dps.pp.load('/data/dpsm/htg.beta/results.xdr')
+## for RESULTS.BKA use results <- dps.pp.load('/data/dpsm/htg/results.xdr')
 
 
 ## EPS plotting :
 ## setEPS(); postscript("fname.eps"); plot(); dev.off()
 
 
+## ===========================================================================
+## plots plasmid performance (rep, conj, seg loss)
+## for plotting use: pdf("fig1.pdf", width=8, height=3)
+plot.fig1 <- function(results.b, results.bka) {
+
+  layout(matrix(1:3, nrow=1))
+
+  mplot(cbind(results.b$pconj, results.bka$pconj),
+        cbind(results.b$M$custom$rep.cn, results.bka$M$custom$rep.cn),
+        main="Replication Rate", ylab="", xlab=expression(p[c]),
+        log.take="x")
+  legend("topleft", c("NO-CNC", "CNC"),
+         lwd=1, col=c("blue", "red"))
+  
+
+  mplot(cbind(results.b$pconj, results.bka$pconj),
+        ##cbind(results.b$M$global$M$ht, results.bka$M$global$M$ht),
+        cbind(results.b$M$custom$ht.cn, results.bka$M$custom$ht.cn),
+        main="Conjugation Rate", ylab="", xlab=expression(p[c]),
+        log.take="x")
+
+  mplot(cbind(results.b$pconj, results.bka$pconj),
+        cbind(results.b$M$custom$loss.cn, results.bka$M$custom$loss.cn),
+        main="Segregation Loss", xlab=expression(p[c]), ylab="",
+        log.take="xy", col=c("blue", "red"))
+  
+
+  layout(matrix(1))
+  
+}
+
+
+
 
 
 ## ===========================================================================
-## plots the evolutionary dynamics of beta, kappa and alpha
-## to plot use:  png("fig1.png", width=800, height=500)
-plot.fig1 <- function( results.bka, highlight=F ) {
+## plots host performance (CN, growth, death)
+## for plotting use: pdf("fig2.pdf", width=8, height=3)
+plot.fig2 <- function(results.b, results.bka) {
 
+  layout(matrix(1:3, nrow=1))
+
+  mplot(cbind(results.b$pconj, results.bka$pconj),
+        cbind(results.b$M$custom$cn, results.bka$M$custom$cn),
+        main="Host Copy Number", xlab=expression(p[c]), ylab="",
+        log.take="x", col=c("blue", "red"))
+  legend("topleft", c("NO-CNC", "CNC"),
+         lwd=1, col=c("blue", "red"))
+  
+  mplot(cbind(results.b$pconj, results.bka$pconj),
+        cbind(results.b$M$custom$div.inf - results.b$M$custom$death,
+              results.bka$M$custom$div.inf - results.bka$M$custom$death),
+        main="Host Growth", xlab=expression(p[c]), ylab="",
+        log.take="x", col=c("blue", "red"))
+
+  mplot(cbind(results.b$pconj, results.bka$pconj),
+        cbind(results.b$M$custom$death,
+              results.bka$M$custom$death),
+        main="Host Death", xlab=expression(p[c]), ylab="",
+        log.take="x", col=c("blue", "red"))
 
   layout(matrix(1))
-  ## plot plasmid replication parameters
-  plot.with.range(cbind(results.bka$dynamics$global$M$beta,
-                        results.bka$dynamics$global$M$kappa,
-                        results.bka$dynamics$global$M$alpha),
-                  cbind(sqrt(results.bka$dynamics$global$V$beta),
-                        sqrt(results.bka$dynamics$global$V$kappa),
-                        sqrt(results.bka$dynamics$global$V$alpha)),
-                  main="", col=c("blue", "red", "green"), ylim=c(0,1),
-                  xlab="Evolutionary Time", ylab="", xaxt='n')
+  
+}
 
-  ## legend("topleft", c(expression(beta), expression(kappa), expression(alpha)),
-  ##        lwd=1, col=c("blue", "red", "green"))
 
-  if (highlight) {
 
-    start <- 1e5
-    end <- 2e5
 
-    x <- c(start, start, end, end)
-    y <- c(0, 1, 1, 0)
 
-    polygon(x, y, border=NA, col=adjustcolor("gray", alpha.f=0.6))
-    
+
+## ===========================================================================
+## plot the mean plasmid values and relatedness as a function of pconj
+## to plot use : pdf("fig3.pdf", width=8, height=6)
+plot.fig3 <- function(results.b, results.bka) {
+
+  layout(matrix(c(rep(1,3), 2:4), nrow=2, byrow=T))
+
+  ## plot beta, kappa, alpha
+  mplot(results.bka$pconj,
+        cbind(results.bka$M$global$M$beta,
+              results.bka$M$global$M$kappa,
+              results.bka$M$global$M$alpha),
+        main="Plasmid Parameter Values", ylim=c(0.4, 1), xlab=expression(p[c]),
+        log.take="x")
+  legend("left", c(expression(beta), expression(kappa), expression(alpha)),
+         lwd=1, box.lwd=0, col=c("blue", "red", "green"))
+
+  ## mplot(results.b$pconj,
+  ##       results.b$M$global$M$beta,
+  ##       main="", xlab=expression(p[c]),
+  ##       log.take="x")
+
+  var.names <- c("beta", "kappa", "alpha")
+
+  ## form data frames
+  r.nocnc.mean <- data.frame(Reduce(cbind, results.b$M$relatedness$oo, c()))
+  r.cnc.mean <- data.frame(Reduce(cbind, results.bka$M$relatedness$oo, c()))
+
+  ## rename columns
+  names(r.nocnc.mean) <- var.names
+  names(r.cnc.mean) <- var.names
+
+  for (var.name in var.names) {
+
+    main <- switch(var.name,
+                   beta=expression(paste("Relatedness (", beta, ")")),
+                   kappa=expression(paste("Relatedness (", kappa, ")")),
+                   alpha=expression(paste("Relatedness (", alpha, ")")))
+
+
+    mplot(cbind(results.b$pconj, results.bka$pconj),
+          cbind(r.nocnc.mean[[var.name]], r.cnc.mean[[var.name]]),
+          xlab=expression(p[c]), ylab="", type="l",
+          log.take="x", col=c("blue", "red"), main=main)
+
+    if (var.name == "beta") {
+      legend("bottomleft", c("NO-CNC", "CNC"),
+             lwd=1, col=c("blue", "red"))
+    }
   }
 
-  ## mark the time ticks properly
-  xticks.at <- 10000 * seq(0, 100, 25)
-  axis(1, at=xticks.at)
+  layout(matrix(1))
+  
+
+}
+
+
+
+
+
+
+## ===========================================================================
+## plots the averages of the Price equation components as a function of pconj
+## in the CNC case
+## to plot use: pdf("fig4a.pdf", width=16, height=6)
+plot.fig4a <- function(results.bka, plot.pdf=F) {
+
+  if (plot.pdf)
+    pdf("fig4a.pdf", w=16, h=6)
+
+  layout(matrix(1:3, nrow=1, byrow=T))
+
+  ## create a 1-row/3-col plot with blue:inter, red:intra and different
+  ## line types for each component (n^R, n^H ...)
+
+  for (name in c("beta", "kappa", "alpha")) {
+
+    ylim <- switch(name,
+                   beta=c(-2e-5, 2e-5),
+                   kappa=c(-2e-5, 2e-5),
+                   alpha=c(-2e-6, 2e-6))
+    ##ylim <- NA
+
+    main <- switch(name,
+                   beta=expression(paste("Selection on ", beta, "  (x", 10^-5, ")")),
+                   kappa=expression(paste("Selection on ", kappa, "  (x", 10^-5, ")")),
+                   alpha=expression(paste("Selection on ", alpha, "  (x", 10^-6, ")")))
+
+    ##ylim <- c(-2e-5, 2e-5)
+
+    inter <- cbind(sapply(c("fitness", "nr", "ht", "death"),
+                          function (fname)
+                          results.bka$M$inter$C[[sprintf("%s.%s", name, fname)]],
+                          USE.NAMES=F))
+
+    intra <- cbind(sapply(c("fitness", "nr", "ht", "death"),
+                          function (fname)
+                          results.bka$M$intra$C[[sprintf("%s.%s", name, fname)]],
+                          USE.NAMES=F))
+
+    tbias <- results.bka$M$global$M[[sprintf("t%s", name)]]
+
+    ## change signs in DEATH columns
+    inter[,4] <- - inter[,4]
+    intra[,4] <- - intra[,4]
+
+    mplot(results.bka$pconj.values,
+          cbind(inter, intra, tbias), 
+          col=c(rep("blue",4), rep("red",4), "green"), ylim=ylim,
+          main=main, log.take="x",
+          xlab=expression(p[c]), yaxt="n",
+          cex.main=2.5, cex.lab=2, cex.axis=2, ltype=1:4)
+
+    ## draw the Y axis (major ticks)
+    axis(2,
+         at=switch(name,
+           beta=seq(-2e-5, 2e-5, 1e-5),
+           kappa=seq(-2e-5, 2e-5, 1e-5),
+           alpha=seq(-2e-6, 2e-6, 1e-6)),
+         labels=switch(name,
+           beta=seq(-2, 2, 1),
+           kappa=seq(-2, 2, 1),
+           alpha=seq(-2, 2, 1)),
+         cex.axis=2)
+    
+    abline(h=0)
+
+    if (name == "beta") {
+      legend("topleft",
+             c("Selection due to f (WH)",
+               expression(paste("Selection due to ", n^R, " (WH)")),
+               expression(paste("Selection due to ", n^H, " (WH)")),
+               expression(paste("Selection due to ", n^D, " (WH)"))),
+             lwd=1, lty=1:4, bty="n", cex=2, col="red")
+      legend("bottomleft",
+             c("Selection due to f (BH)",
+               expression(paste("Selection due to ", n^R, " (BH)")),
+               expression(paste("Selection due to ", n^H, " (BH)")),
+               expression(paste("Selection due to ", n^D, " (BH)"))),
+             lwd=1, lty=1:4, bty="n", cex=2, col="blue")
+      legend("topleft", "Transmission Bias", inset=c(0, 0.3),
+             lwd=1, bty="n", cex=2, col="green")
+    }
+  }
+
+  if (plot.pdf)
+    dev.off()
+
+  layout(matrix(1))
+
+}
+
+
+
+
+## ===========================================================================
+## plots the averages of the Price equation components as a function of pconj
+## in the NO-CNC case
+## to plot use: pdf("fig4b.pdf", width=10, height=10)
+plot.fig4b <- function(results.b, plot.pdf=F) {
+
+  if (plot.pdf)
+    pdf("fig4b.pdf", w=16, h=6)
+
+  layout(matrix(1:3, nrow=1, byrow=T))
+
+  inter <- cbind(sapply(c("fitness", "nr", "ht", "death"),
+                        function (fname)
+                        results.b$M$inter$C[[sprintf("beta.%s", fname)]],
+                        USE.NAMES=F))
+  
+  intra <- cbind(sapply(c("fitness", "nr", "ht", "death"),
+                        function (fname)
+                        results.b$M$intra$C[[sprintf("beta.%s", fname)]],
+                        USE.NAMES=F))
+
+  tbias <- results.b$M$global$M$tbeta
+
+  ## change signs in DEATH columns
+  inter[,4] <- - inter[,4]
+  intra[,4] <- - intra[,4]
+
+  mplot(results.b$pconj.values,
+        cbind(inter, intra, tbias), 
+        col=c(rep("blue",4), rep("red",4), "green"),  log.take="x",
+        main=expression(paste("Selection on ", beta, " (x", 10^-4,")")), 
+        xlab=expression(p[c]), yaxt="n", ylim=c(-1e-4, 1e-4),
+        cex.main=2.5, cex.lab=2, cex.axis=2, ltype=1:4)
+  axis(2, at=seq(-1e-4, 1e-4, 1e-4), labels=c(seq(-1, 1, 1)),
+       cex.axis=2)
+  abline(h=0)
+
+  legend("topleft",
+         c("Selection due to f (WH)",
+           expression(paste("Selection due to ", n^R, " (WH)")),
+           expression(paste("Selection due to ", n^H, " (WH)")),
+           expression(paste("Selection due to ", n^D, " (WH)"))),
+         lwd=1, lty=1:4, bty="n", cex=2, col="red")
+  legend("bottomleft",
+         c("Selection due to f (BH)",
+           expression(paste("Selection due to ", n^R, " (BH)")),
+           expression(paste("Selection due to ", n^H, " (BH)")),
+           expression(paste("Selection due to ", n^D, " (BH)"))),
+         lwd=1, lty=1:4, bty="n", cex=2, col="blue")
+  legend("topleft", "Transmission Bias", inset=c(0, 0.33),
+         lwd=1, bty="n", cex=2, col="green")
+
+  ## legend("topright", "Transmission Bias", ##inset=c(0, 0.35),
+  ##        lwd=1, bty="n", cex=2, col="green")
+
+  if (plot.pdf)
+    dev.off()
+
+  layout(matrix(1))
   
 }
 
@@ -69,7 +317,7 @@ plot.fig1 <- function( results.bka, highlight=F ) {
 ## ===========================================================================
 ## plots the dynamics of the Price equation components for bka
 ## to plot use: pdf("fig2.pdf", width=15, height=10)
-plot.fig2 <- function(results.bka, dz, steps.range=c(1e5, 2e5),
+supp.plot.fig2 <- function(results.bka, dz, steps.range=c(1e5, 2e5),
                       price.ylim=c(-1.5e-5, 1.5e-5)) {
 
 
@@ -166,7 +414,7 @@ plot.fig2 <- function(results.bka, dz, steps.range=c(1e5, 2e5),
 ## ===========================================================================
 ## plots the metrics for hosts as a function of pconj
 ## for plotting use: pdf("fig3.pdf", width=8, height=3)
-plot.fig3 <- function( results ) {
+supp.plot.fig3 <- function( results ) {
 
   ## store settings
   par.bak <- par(no.readonly=TRUE)
@@ -194,23 +442,6 @@ plot.fig3 <- function( results ) {
 
 
 
-## ===========================================================================
-## plot the mean plasmid values as a function of pconj
-## to plot use :  pdf("fig4.pdf", width=6, height=4)
-plot.fig4 <- function( results ) {
-
-  ## plot beta
-  mplot(results$pconj,
-        cbind(results$M$global$M$beta,
-              results$M$global$M$kappa,
-              results$M$global$M$alpha),
-        main="", ylim=c(0.4, 1), xlab=expression(p[c]),
-        log.take="x")
-
-  legend("left", c(expression(beta), expression(kappa), expression(alpha)),
-         lwd=1, box.lwd=0, col=c("blue", "red", "green"))
-
-}
 
 
 
@@ -226,7 +457,7 @@ plot.fig4 <- function( results ) {
 ## ===========================================================================
 ## plots the metrics for plasmids as a function of pconj
 ## for plotting use: pdf("fig5.pdf", width=8, height=4)
-plot.fig5 <- function( results ) {
+supp.plot.fig5 <- function( results ) {
 
   ## store settings
   par.bak <- par(no.readonly=TRUE)
@@ -251,7 +482,7 @@ plot.fig5 <- function( results ) {
 ## ===========================================================================
 ## plot plasmid parameter variance as a function of pconj
 ## for plotting use: pdf("fig6.pdf", width=8, height=3)
-plot.fig6 <- function(results) {
+supp.plot.fig6 <- function(results) {
 
   par.bak <- par(no.readonly=TRUE)
   layout(matrix(1:3, nrow=1))
@@ -298,7 +529,7 @@ plot.fig6 <- function(results) {
 ## ===========================================================================
 ## plots the averages of the Price equation components as a function of pconj
 ## to plot use: pdf("fig7.pdf", width=16, height=6)
-plot.fig7 <- function(results) {
+supp.plot.fig7 <- function(results) {
 
 
   layout(matrix(1:3, nrow=1, byrow=T))
@@ -386,7 +617,7 @@ plot.fig7 <- function(results) {
 ## plot the intra-cellular covariances of (beta,alpha) and (kappa, alpha)
 ## as a function of pconj
 ## to plot use :  pdf("fig8.pdf", width=8, height=5)
-plot.fig8 <- function( results ) {
+supp.plot.fig8 <- function( results ) {
 
   level = "intra"
 
@@ -437,7 +668,7 @@ plot.fig8 <- function( results ) {
 
 ## relatedness
 
-plot.relatedness <- function(results) {
+supp.plot.relatedness <- function(results) {
 
   wg.mean <- data.frame(Reduce(cbind, results$M$relatedness$wg, c()))
   oo.mean <- data.frame(Reduce(cbind, results$M$relatedness$oo, c()))

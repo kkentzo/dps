@@ -8,8 +8,8 @@
 
 #include <errno.h>
 
-#include "../utils/clib.h"
-#include "../utils/nvar.h"
+#include "../../utils/clib.h"
+#include "../../utils/nvar.h"
 
 #include "pool.h"
 
