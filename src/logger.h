@@ -165,8 +165,10 @@ typedef struct {
   hdf_table_t tbl_intra_v;
   hdf_table_t tbl_intra_c;
 
-  hdf_table_t tbl_relatedness_wg;
-  hdf_table_t tbl_relatedness_oo;
+  hdf_table_t tbl_relatedness_wg_cov;
+  hdf_table_t tbl_relatedness_wg_var;
+  hdf_table_t tbl_relatedness_oo_cov;
+  hdf_table_t tbl_relatedness_oo_var;
 
   // buffers for transferring inter-cellular statistics to inter- tables
   nvar_t *inter_stats;

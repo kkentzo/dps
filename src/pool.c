@@ -57,8 +57,10 @@ pool_t *pool_new() {
   pool->V = calloc(P_INTRA_IDX_ALL, sizeof(double));
   pool->C = calloc(P_INTRA_IDX_ALL*(P_INTRA_IDX_ALL-1)/2, sizeof(double));
 
-  pool->R_WG = calloc(P_PARAMS_IDX_ALL, sizeof(double));
-  pool->R_OO = calloc(P_PARAMS_IDX_ALL, sizeof(double));
+  pool->R_WG_COV = calloc(P_PARAMS_IDX_ALL, sizeof(double));
+  pool->R_WG_VAR = calloc(P_PARAMS_IDX_ALL, sizeof(double));
+  pool->R_OO_COV = calloc(P_PARAMS_IDX_ALL, sizeof(double));
+  pool->R_OO_VAR = calloc(P_PARAMS_IDX_ALL, sizeof(double));
 
   return pool;
     
@@ -80,8 +82,10 @@ void pool_free(pool_t *pool) {
   free(pool->M);
   free(pool->V);
   free(pool->C);
-  free(pool->R_WG);
-  free(pool->R_OO);
+  free(pool->R_WG_COV);
+  free(pool->R_WG_VAR);
+  free(pool->R_OO_COV);
+  free(pool->R_OO_VAR);
 
   // free the struct
   free(pool);
@@ -381,30 +385,31 @@ void pool_update(pool_t *pool, int step, void *_params) {
 	
     for (i=0; i<P_PARAMS_IDX_ALL; i++) {
       // ==> whole group relatedness
-      pool->R_WG[i] =				\
-	nvar_calc_covariance(pool->rstats,
-			     i,
-			     i + 2 * P_PARAMS_IDX_ALL,
-			     FALSE) /		\
-	nvar_calc_variance(pool->rstats,
-			   i + 2 * P_PARAMS_IDX_ALL,
-			   FALSE);
+      pool->R_WG_COV[i] = nvar_calc_covariance(pool->rstats,
+					       i,
+					       i + 2 * P_PARAMS_IDX_ALL,
+					       FALSE);
+      pool->R_WG_VAR[i] = nvar_calc_variance(pool->rstats,
+					     i + 2 * P_PARAMS_IDX_ALL,
+					     FALSE);
       // ==> other-only relatedness
-      pool->R_OO[i] =				\
-	nvar_calc_covariance(pool->rstats,
-			     i + P_PARAMS_IDX_ALL,
-			     i + 2 * P_PARAMS_IDX_ALL,
-			     FALSE) /		\
-	nvar_calc_variance(pool->rstats,
-			   i + 2 * P_PARAMS_IDX_ALL,
-			   FALSE);
+      pool->R_OO_COV[i] = nvar_calc_covariance(pool->rstats,
+					       i + P_PARAMS_IDX_ALL,
+					       i + 2 * P_PARAMS_IDX_ALL,
+					       FALSE);
+      pool->R_OO_VAR[i] = nvar_calc_variance(pool->rstats,
+					     i + 2 * P_PARAMS_IDX_ALL,
+					     FALSE);
     }
-	
-	    
-    hdf_table_append_record(&((logger_t *)params->logger)->tbl_relatedness_wg,
-			    pool->R_WG);
-    hdf_table_append_record(&((logger_t *)params->logger)->tbl_relatedness_oo,
-			    pool->R_OO);
+    
+    hdf_table_append_record(&((logger_t *)params->logger)->tbl_relatedness_wg_cov,
+			    pool->R_WG_COV);
+    hdf_table_append_record(&((logger_t *)params->logger)->tbl_relatedness_wg_var,
+			    pool->R_WG_VAR);
+    hdf_table_append_record(&((logger_t *)params->logger)->tbl_relatedness_oo_cov,
+			    pool->R_OO_COV);
+    hdf_table_append_record(&((logger_t *)params->logger)->tbl_relatedness_oo_var,
+			    pool->R_OO_VAR);
 
     // reset the stats
     nvar_reset(pool->stats);

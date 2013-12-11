@@ -52,8 +52,10 @@ typedef struct {
   double *V;
   double *C;
 
-  double *R_WG;
-  double *R_OO;
+  double *R_WG_COV;
+  double *R_WG_VAR;
+  double *R_OO_COV;
+  double *R_OO_VAR;
 
 
 } pool_t;

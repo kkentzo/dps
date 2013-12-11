@@ -284,12 +284,13 @@ dps.calc.price <- function(results, window.size=500, steps.range=NA,
 
     ## Calculate relatedness
     if (relatedness) {
-      dz[[z.name]]$r <- ma(results$dynamics$relatedness$wg[[z.name]][take.steps],
+      dz[[z.name]]$r <- ma(results$dynamics$relatedness$wg$cov[[z.name]][take.steps] /
+                           results$dynamics$relatedness$wg$var[[z.name]][take.steps],
                            window.size=window.size)
-      dz[[z.name]]$r.oo <- ma(results$dynamics$relatedness$oo[[z.name]][take.steps],
+      dz[[z.name]]$r.oo <- ma(results$dynamics$relatedness$oo$cov[[z.name]][take.steps] /
+                              results$dynamics$relatedness$oo$var[[z.name]][take.steps],
                               window.size=window.size)
     }
-
     
   }
 
@@ -1238,15 +1239,15 @@ dps.pp.experiment.parallel <- function( path, cores ) {
 
       ## process RELATEDNESS
       for (r.type in names(r$dynamics$relatedness)) 
-        for (name in names(r$dynamics$relatedness[[r.type]])) {
+        for (name in names(r$dynamics$relatedness[[r.type]]$cov)) {
           if (is.null(results$relatedness[[r.type]][[name]])) 
             results$relatedness[[r.type]][[name]] <- array(NA, runs)
           
           results$relatedness[[r.type]][[name]][i.run] <-
-            mean(r$dynamics$relatedness[[r.type]][[name]][seq.steps], na.rm=T)
-          
+            mean(r$dynamics$relatedness[[r.type]]$cov[[name]][seq.steps] /
+                 r$dynamics$relatedness[[r.type]]$var[[name]][seq.steps],
+                 na.rm=T)
         }
-      
 
       ## process the rest
       for (level in c("global", "inter", "intra"))
