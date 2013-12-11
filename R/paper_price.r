@@ -1,22 +1,11 @@
 ## insert all our functions
-source('dps.r')
-
+tryCatch(suppressWarnings(source('dps.r')), error=function(e) source('R/dps.r'))
 
 ## === use the following files for results ===
 
 ## || NO-CONJ results with pconj=0 || <=== THIS IS USED IN THE PAPER
 ## for RESULTS.BKA use results.bka <- dps.load('/data/dps/bka/results.2.16.h5')
 ## for DZ use load("/data/dps/bka/dz.2.16.xdr")
-
-
-## || CONJ results with pconj=1e-2 || <=== THIS IS **NOT** USED IN THE PAPER
-## for RESULTS.BKA use dps.load('/data/dpsm/htg.bka/results.2.1.h5')
-## for DZ use load("/data/dpsm/htg.bka/dz.full.2.1.xdr")
-
-## || results for varying pconj ||
-## for RESULTS.B use results <- dps.pp.load('/data/dpsm/htg.beta/results.xdr')
-## for RESULTS.BKA use results <- dps.pp.load('/data/dpsm/htg/results.xdr')
-
 
 ## EPS plotting :
 ## setEPS(); postscript("fname.eps"); plot(); dev.off()
@@ -79,7 +68,6 @@ plot.fig2 <- function(results.bka, dz, steps.range=c(1e5, 2e5),
   else
     steps.range <- steps.range[1]:steps.range[2]
 
-  par.bak <- par(no.readonly=TRUE)
   layout(matrix(1:6, ncol=3, byrow=F))
 
   alphabet <- c("A", "D", "B", "E", "C", "F")
@@ -157,7 +145,7 @@ plot.fig2 <- function(results.bka, dz, steps.range=c(1e5, 2e5),
 
   }
 
-  par(par.bak)
+  layout(matrix(1))
   
 }
 
@@ -169,7 +157,6 @@ plot.fig2 <- function(results.bka, dz, steps.range=c(1e5, 2e5),
 plot.fig3 <- function( results ) {
 
   ## store settings
-  par.bak <- par(no.readonly=TRUE)
   layout(matrix(1:3, nrow=1, byrow=T))
 
   ## plot host performance
@@ -186,7 +173,7 @@ plot.fig3 <- function( results ) {
         log.take="x")
   
 
-  par(par.bak)
+  layout(matrix(1))
 
 }
 
@@ -229,7 +216,6 @@ plot.fig4 <- function( results ) {
 plot.fig5 <- function( results ) {
 
   ## store settings
-  par.bak <- par(no.readonly=TRUE)
   layout(matrix(1:2, nrow=1, byrow=T))
 
   ## plot plasmid rep rate
@@ -241,7 +227,7 @@ plot.fig5 <- function( results ) {
         main="Plasmid Conjugation Rate", ylab="", xlab=expression(p[c]),
         log.take="x")
 
-  par(par.bak)
+  layout(matrix(1))
 
 }
 
@@ -253,7 +239,6 @@ plot.fig5 <- function( results ) {
 ## for plotting use: pdf("fig6.pdf", width=8, height=3)
 plot.fig6 <- function(results) {
 
-  par.bak <- par(no.readonly=TRUE)
   layout(matrix(1:3, nrow=1))
 
   ## plot beta
@@ -284,7 +269,7 @@ plot.fig6 <- function(results) {
         main=expression(sigma(alpha)),
         xlab=expression(p[c]), type="l", log="xy")
         
-  par(par.bak)
+  layout(matrix(1))
 
   
 }
