@@ -1,11 +1,11 @@
-library(tseries)
-library(hdf5)
-library(gplots)
-library(multicore)
+suppressMessages(library(tseries))
+suppressMessages(library(hdf5))
+suppressMessages(library(gplots))
+suppressMessages(library(multicore))
 
-library(krutils)
-
-
+## insert contents of krutils.r
+tryCatch(suppressWarnings(source('krutils.r')),
+         error=function(e) source('R/krutils.r'))
 
 ## *** See bottom of file for command line options ***
 
@@ -2014,5 +2014,3 @@ if (length(options) == 2) {
   dps.plot.all(options[2], options[3], as.numeric(options[4]))
   
 }
-
-
