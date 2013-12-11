@@ -77,25 +77,25 @@ The HDF output file has four major sections :
 1. `dynamics` : contains the evolutionary dynamics of the simulation
 split in four groups
 
-* `counters` : records the numbers of various events (such as
+    * `counters` : records the numbers of various events (such as
       population size, total copy number, division events etc.) over
       time
 
 	
-* `intra`, `inter` and `global` : these contains descriptive
+    * `intra`, `inter` and `global` : these contains descriptive
       statistics about evolutionary variables (i.e. means in `M`,
       variances in `V` and pairwise covariances in `C`) at three
       different levels: within hosts (intra), between hosts (inter)
       and across all plasmids regardless of hosts (global)
 
-* `relatedness` : contains the groups `wg` (for calculating
-  whole-group relatedness) and `oo` (for calculating others-only
-  relatedness). Each of these groups contains a `cov` (covariance) and
-  a `var` (variance) data frame with members `beta`, `kappa` and
-  `alpha`. In order to calculate the dynamics of, say, the others-only
-  relatedness coefficient for β use:
-
-    r$dynamics$relatedness$oo$cov$beta / r$dynamics$relatedness$oo$var$beta
+    * `relatedness` : contains the groups `wg` (for calculating
+      whole-group relatedness) and `oo` (for calculating others-only
+      relatedness). Each of these groups contains a `cov` (covariance)
+      and a `var` (variance) data frame with members `beta`, `kappa`
+      and `alpha`. In order to calculate the dynamics of, say, the
+      others-only relatedness coefficient for β use:
+      `r$dynamics$relatedness$oo$cov$beta /
+      r$dynamics$relatedness$oo$var$beta`
 
 2. `histograms` : contains the copy number and cell age (i.e. number
 of simulation steps required for a host to divide) histograms. The
@@ -113,7 +113,6 @@ which has dimensionality (`fparts` x `nbins`+1 x `nbins`+1), where
 4. `population` : contains the state of the plasmid (group `profiles`)
 and host (group `hosts`) population at the end of the simulation as
 nested-parentheses strings.
-
 
 
 
