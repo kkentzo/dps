@@ -3,9 +3,14 @@ suppressMessages(library(hdf5))
 suppressMessages(library(gplots))
 suppressMessages(library(multicore))
 
+trySource <- function(path) {suppressWarnings(source(path)); cat("Sourcing", path, "\n");}
+
 ## insert contents of krutils.r
-tryCatch(suppressWarnings(source('krutils.r')),
-         error=function(e) source('R/krutils.r'))
+tryCatch(trySource('krutils.r'),
+         error=function(e) {
+           tryCatch(trySource('R/krutils.r'),
+                    error=function(e) cat("Unable to source krutils\n"))
+         })
 
 ## *** See bottom of file for command line options ***
 
@@ -911,7 +916,7 @@ dps.plot.all.parallel <- function( h5.path, png.path, cores ) {
       ## load results
       r <- dps.load(fname)
 
-      ## analyze results
+      ## plot dynamics
       png(file.path(png.path, paste("results", r.id, "png", sep=".")),
           width=640, height=640, bg="white")
       dps.plot.dynamics(r)
@@ -1998,19 +2003,32 @@ process.relatedness.adhoc <- function(path="relatedness") {
 ## png files in PNG_PATH
 
 
-## grab options
-options <- commandArgs(trailingOnly=T)
+## grab all options
+all.options <- commandArgs(trailingOnly=F)
+## figure out whether any args have been passed
+idx.args <- grep("--args", all.options) + 1
 
-if (length(options) == 2) {
+if (length(idx.args) > 0) {
 
-  ## post-process the results
-  dps.pp.experiment.parallel(options[1], as.numeric(options[2]))
+  ## discover the directory of `this` script
+  script.name <- sub("--file=", "", all.options[grep("--file=", all.options)])
+  this.path <- dirname(script.name)
+  ## try to source krutils
+  trySource(file.path(this.path, "krutils.r"))
+  ## isolate the program options
+  options <- all.options[idx.args:length(all.options)]
+  ## parse program options and decide on course of action
+  if (length(options) == 2) {
 
-} else if (length(options) == 4 && options[1] == "plot") {
+    ## post-process the results
+    dps.pp.experiment.parallel(options[1], as.numeric(options[2]))
 
-  ## option[2] is the path to the h5 files [or FNAME for the serial version of plot.all()]
-  ## option[3] is the path to the generated images
-  ## option[4] is the number of cores to use
-  dps.plot.all(options[2], options[3], as.numeric(options[4]))
-  
+  } else if (length(options) == 4 && options[1] == "plot") {
+
+    ## option[2] is the path to the h5 files [or FNAME for the serial version of plot.all()]
+    ## option[3] is the path to the generated images
+    ## option[4] is the number of cores to use
+    dps.plot.all(options[2], options[3], as.numeric(options[4]))
+    
+  }
 }

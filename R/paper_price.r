@@ -1,5 +1,6 @@
 ## insert all our functions
-tryCatch(suppressWarnings(source('dps.r')), error=function(e) source('R/dps.r'))
+tryCatch(suppressWarnings(source('dps.r')),
+         error=function(e) source('R/dps.r'))
 
 ## === use the following files for results ===
 
@@ -10,12 +11,15 @@ tryCatch(suppressWarnings(source('dps.r')), error=function(e) source('R/dps.r'))
 ## EPS plotting :
 ## setEPS(); postscript("fname.eps"); plot(); dev.off()
 
+## load the results to be used in the paper
+price.load.bka <- function(fname="/data/dps/bka/results.15.h5") dps.load(fname)
+
 
 
 ## ===========================================================================
 ## plots the evolutionary dynamics of beta, kappa and alpha
 ## to plot use:  png("fig1.png", width=800, height=500)
-plot.fig1 <- function( results.bka, highlight=F ) {
+price.plot.fig1 <- function( results.bka, highlight=F ) {
 
 
   layout(matrix(1))
@@ -58,7 +62,7 @@ plot.fig1 <- function( results.bka, highlight=F ) {
 ## ===========================================================================
 ## plots the dynamics of the Price equation components for bka
 ## to plot use: pdf("fig2.pdf", width=15, height=10)
-plot.fig2 <- function(results.bka, dz, steps.range=c(1e5, 2e5),
+price.plot.fig2 <- function(results.bka, dz, steps.range=c(1e5, 2e5),
                       price.ylim=c(-1.5e-5, 1.5e-5)) {
 
 
@@ -154,7 +158,7 @@ plot.fig2 <- function(results.bka, dz, steps.range=c(1e5, 2e5),
 ## ===========================================================================
 ## plots the metrics for hosts as a function of pconj
 ## for plotting use: pdf("fig3.pdf", width=8, height=3)
-plot.fig3 <- function( results ) {
+price.plot.fig3 <- function( results ) {
 
   ## store settings
   layout(matrix(1:3, nrow=1, byrow=T))
@@ -184,7 +188,7 @@ plot.fig3 <- function( results ) {
 ## ===========================================================================
 ## plot the mean plasmid values as a function of pconj
 ## to plot use :  pdf("fig4.pdf", width=6, height=4)
-plot.fig4 <- function( results ) {
+price.plot.fig4 <- function( results ) {
 
   ## plot beta
   mplot(results$pconj,
@@ -213,7 +217,7 @@ plot.fig4 <- function( results ) {
 ## ===========================================================================
 ## plots the metrics for plasmids as a function of pconj
 ## for plotting use: pdf("fig5.pdf", width=8, height=4)
-plot.fig5 <- function( results ) {
+price.plot.fig5 <- function( results ) {
 
   ## store settings
   layout(matrix(1:2, nrow=1, byrow=T))
@@ -237,7 +241,7 @@ plot.fig5 <- function( results ) {
 ## ===========================================================================
 ## plot plasmid parameter variance as a function of pconj
 ## for plotting use: pdf("fig6.pdf", width=8, height=3)
-plot.fig6 <- function(results) {
+price.plot.fig6 <- function(results) {
 
   layout(matrix(1:3, nrow=1))
 
@@ -283,7 +287,7 @@ plot.fig6 <- function(results) {
 ## ===========================================================================
 ## plots the averages of the Price equation components as a function of pconj
 ## to plot use: pdf("fig7.pdf", width=16, height=6)
-plot.fig7 <- function(results) {
+price.plot.fig7 <- function(results) {
 
 
   layout(matrix(1:3, nrow=1, byrow=T))
@@ -371,7 +375,7 @@ plot.fig7 <- function(results) {
 ## plot the intra-cellular covariances of (beta,alpha) and (kappa, alpha)
 ## as a function of pconj
 ## to plot use :  pdf("fig8.pdf", width=8, height=5)
-plot.fig8 <- function( results ) {
+price.plot.fig8 <- function( results ) {
 
   level = "intra"
 
