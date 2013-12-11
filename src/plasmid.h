@@ -2,7 +2,7 @@
 
   plasmid.h
 
- */
+*/
 
 
 
@@ -14,23 +14,23 @@
 
 typedef struct {
 
-    // profile
-    double beta; // basal replication rate
-    double kappa; // sensitivity to the repressor
-    double alpha; // repressor production
+  // profile
+  double beta; // basal replication rate
+  double kappa; // sensitivity to the repressor
+  double alpha; // repressor production
 
-    // object's reference count
-    // represents how many hosts the profile is spread across
-    int _ref_count;
+  // object's reference count
+  // represents how many hosts the profile is spread across
+  int _ref_count;
 
-    // ref to parent profile
-    struct profile_t *parent;
+  // ref to parent profile
+  struct profile_t *parent;
 
-    // mark the profile creation sim. step
-    int step;
+  // mark the profile creation sim. step
+  int step;
 
-    // ref to params
-    params_t *params;
+  // ref to params
+  params_t *params;
 
 } profile_t;
 
@@ -85,9 +85,9 @@ void profile_description(profile_t *profile, GString *st);
 
 typedef struct {
 
-    profile_t *profile;
+  profile_t *profile;
 
-    int cn;
+  int cn;
 
 } plasmid_t;
 

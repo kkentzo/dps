@@ -7,23 +7,23 @@
 
 typedef struct {
 
-    long pid; // the profile's pid
+  long pid; // the profile's pid
 
-    int cn; // the profile's total copy number
+  int cn; // the profile's total copy number
 
-    // the sums of the mutant profile values
-    double mbeta_sum;
-    double mkappa_sum;
-    double malpha_sum;
-    double mbk_sum;
-    // FITNESS_SUM is the sum of the profiles different fitnesses
-    // across cells (weighted by copy number)
-    // It represents the total representation of the type
-    // at the next time step (i.e. it is the number of offsrping)
-    double fitness_sum; 
+  // the sums of the mutant profile values
+  double mbeta_sum;
+  double mkappa_sum;
+  double malpha_sum;
+  double mbk_sum;
+  // FITNESS_SUM is the sum of the profiles different fitnesses
+  // across cells (weighted by copy number)
+  // It represents the total representation of the type
+  // at the next time step (i.e. it is the number of offsrping)
+  double fitness_sum; 
 
-    int pcn; // the copy number of the profile at the current time step
-    int mutants; // the number of mutation events
+  int pcn; // the copy number of the profile at the current time step
+  int mutants; // the number of mutation events
 
 } pdata_t;
 
@@ -32,28 +32,28 @@ typedef struct {
 
 typedef struct {
 
-    GHashTable *profiles;
+  GHashTable *profiles;
 
-    long pid; // the id of the next plasmid profile to be created
+  long pid; // the id of the next plasmid profile to be created
 
-    nvar_t *stats; // pool statistics
+  nvar_t *stats; // pool statistics
 
-    // relatedness statistics
-    nvar_t *rstats;
+  // relatedness statistics
+  nvar_t *rstats;
 
-    // the total copy number
-    int cn;
+  // the total copy number
+  int cn;
 
-    // the number of unique plasmid profiles
-    int size;
+  // the number of unique plasmid profiles
+  int size;
 
-    // buffers for means, vars and covs and relatedness
-    double *M;
-    double *V;
-    double *C;
+  // buffers for means, vars and covs and relatedness
+  double *M;
+  double *V;
+  double *C;
 
-    double *R_WG;
-    double *R_OO;
+  double *R_WG;
+  double *R_OO;
 
 
 } pool_t;

@@ -2,7 +2,7 @@
 
    representation and functions of a cell
  
- */
+*/
 
 
 
@@ -15,33 +15,33 @@
 // =======================================================================
 typedef struct {
 
-    // cell state variables
-    double omega; 
-    double omega_0;
-    double domg;
-    int cn; // ==> always accurate
-    int age;
+  // cell state variables
+  double omega; 
+  double omega_0;
+  double domg;
+  int cn; // ==> always accurate
+  int age;
 
-    double sum_alpha; // ==> always accurate
+  double sum_alpha; // ==> always accurate
 
-    GPtrArray *plasmids; // pointers to plasmid_t objects
-    GPtrArray *mutants; // pointers to profile_t objects
+  GPtrArray *plasmids; // pointers to plasmid_t objects
+  GPtrArray *mutants; // pointers to profile_t objects
 
-    int total_extra_cn; //
+  int total_extra_cn; //
 
-    gboolean division;
-    gboolean death;
-    gboolean rdeath;
+  gboolean division;
+  gboolean death;
+  gboolean rdeath;
 
-    // cell statistics (indexed by P_INTRA_IDX_*)
-    // do not include replication events
-    nvar_t *stats;
-    // cell statistics (indexed by P_PARAMS_IDX_*)
-    // they do include replication events
-    // (used for relatedness calculations)
-    nvar_t *rstats;
+  // cell statistics (indexed by P_INTRA_IDX_*)
+  // do not include replication events
+  nvar_t *stats;
+  // cell statistics (indexed by P_PARAMS_IDX_*)
+  // they do include replication events
+  // (used for relatedness calculations)
+  nvar_t *rstats;
 
-    params_t *params; // NOT OWNED BY THE CELL
+  params_t *params; // NOT OWNED BY THE CELL
 
 } cell_t;
 
