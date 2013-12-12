@@ -229,7 +229,22 @@ dps.calc.association <- function( dynamics, names, norm.by="xy", plot=F, steps.r
 
 
 
+## ==========================================================================
+## loads and returns the saved dz object calculated by dps.calc.price()
+dps.load.price <- function(fname) {
 
+  load(fname)
+  dz
+  
+}
+
+
+## saves the DZ object calculated by dps.calc.price()
+dps.save.price <- function(dz, fname) {
+
+  save(dz, file=fname, compress=T)
+  
+}
 
 
 
@@ -237,10 +252,10 @@ dps.calc.association <- function( dynamics, names, norm.by="xy", plot=F, steps.r
 
 ## ==========================================================================
 ## calculates and returns the 3 components of the price equation
-## for both beta and kappa
+## for beta, kappa and alpha using a single core
 ## STEPS.RANGE is a 2-tuple
-dps.calc.price <- function(results, window.size=500, steps.range=NA, 
-                           decompose=F, correlations=F, relatedness=T)
+dps.calc.price.single.core <- function(results, window.size=500, steps.range=NA, 
+                                       decompose=F, correlations=F, relatedness=T)
 {
 
   if (length(steps.range) != 2) 
@@ -299,6 +314,100 @@ dps.calc.price <- function(results, window.size=500, steps.range=NA,
     
   }
 
+  if (correlations) {
+
+    dz$beta.alpha <- ma(dps.calc.association(results$dynamics$intra,
+                                             "beta.alpha",
+                                             norm.by="",
+                                             steps.range=steps.range),
+                        window.size=window.size)
+    dz$kappa.alpha <- ma(dps.calc.association(results$dynamics$intra,
+                                              "kappa.alpha",
+                                              norm.by="",
+                                              steps.range=steps.range),
+                         window.size=window.size)
+    
+  }
+  
+  dz
+  
+}
+
+
+
+
+## ==========================================================================
+## calculates and returns the 3 components of the price equation
+## for beta, kappa and alpha (uses 3 cores to do that in parallel)
+## STEPS.RANGE is a 2-tuple
+dps.calc.price <- function(results, window.size=500, steps.range=NA, 
+                           decompose=F, correlations=F, relatedness=T)
+{
+
+  if (length(steps.range) != 2) 
+    take.steps <- 1:length(results$dynamics$global$M$fitness)
+  else
+    take.steps <- steps.range[1]:steps.range[2]
+  
+  dz <- list(fitness=ma(results$dynamics$global$M$fitness[take.steps],
+                 window.size=window.size),
+             window.size=window.size)
+
+  calc.price.for.var <- function(z.name) {
+
+    ## calculate and store transmission bias
+    r <- data.frame(tbias=ma(
+                        results$dynamics$global$M[[sprintf("t%s", z.name)]][take.steps],
+                        window.size=window.size) / dz$fitness)
+    
+    ## calculate covariances
+    for (level in c("global", "inter", "intra")) {
+
+      r[[level]] <-
+        ma(dps.calc.association(results$dynamics[[level]],
+                                sprintf("%s.fitness", z.name),
+                                norm.by="",
+                                steps.range=steps.range),
+           window.size=window.size) / dz$fitness
+
+      if (decompose) {
+
+        for (name in c("nr", "ht", "death")) {
+
+          r[[sprintf("%s.%s", level, name)]] <-
+            ma(dps.calc.association(results$dynamics[[level]],
+                                    sprintf("%s.%s", z.name, name),
+                                    norm.by="",
+                                    steps.range=steps.range),
+               window.size=window.size) / dz$fitness
+        }
+      }
+
+      ## Calculate total selection
+      r[["total"]] <- r$global + r$tbias
+
+      ## Calculate relatedness
+      if (relatedness) {
+        r$r <- ma(results$dynamics$relatedness$oo$cov[[z.name]][take.steps] /
+                  results$dynamics$relatedness$oo$var[[z.name]][take.steps],
+                  window.size=window.size)
+        r$r.wg <- ma(results$dynamics$relatedness$wg$cov[[z.name]][take.steps] /
+                     results$dynamics$relatedness$wg$var[[z.name]][take.steps],
+                     window.size=window.size)
+      }
+    }
+
+    r
+    
+  }
+
+  ## calculate price equation components
+  z.names <- c("beta", "kappa", "alpha")
+  vars <- mclapply(z.names, calc.price.for.var, mc.cores=3)
+  names(vars) <- z.names
+  dz <- c(dz, vars)
+
+  ## calculate correlations?
   if (correlations) {
 
     dz$beta.alpha <- ma(dps.calc.association(results$dynamics$intra,
