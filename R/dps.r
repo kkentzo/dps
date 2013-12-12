@@ -428,28 +428,59 @@ dps.plot.price <- function( results, dz=NULL, window.size=0, steps.range=NA,
 
 ## =========================================================================
 ## plot the dynamics of price equation events components
-dps.plot.price.events <- function(results, dz, steps.range=NA) {
+dps.plot.price.events <- function(results, dz,
+                                  events=c("nr", "death"),
+                                  z.names=c("beta", "kappa", "alpha"),
+                                  steps.range=NA) {
 
   ## calculate steps.range
   if (length(steps.range) != 2) 
     steps.range <- 1:nrow(dz$beta)
   else
     steps.range <- steps.range[1]:steps.range[2]
-
+  
+  level.names <- c("global", "inter", "intra")
+  l <- length(level.names)
+  z <- length(z.names)
+  layout(matrix(c(rep(1,z), 1+1:(z*l)), ncol=z, byrow=T))
+  
   ## plot evolutionary dynamics of beta, kappa, alpha
-  plot.with.range(cbind(results$dynamics$global$M$beta[steps.range],
-                        results$dynamics$global$M$kappa[steps.range],
-                        results$dynamics$global$M$alpha[steps.range]),
-                  cbind(sqrt(results$dynamics$global$V$beta[steps.range]),
-                        sqrt(results$dynamics$global$V$kappa[steps.range]),
-                        sqrt(results$dynamics$global$V$alpha[steps.range])),
-                  x=steps.range,
+  dyn.mean <- Reduce(cbind,
+                     lapply(z.names,
+                            function(z.name)
+                            results$dynamics$global$M[[z.name]][steps.range]),
+                     init=NULL)
+  dyn.sd <- Reduce(cbind,
+                   lapply(z.names,
+                          function(z.name)
+                          sqrt(results$dynamics$global$V[[z.name]][steps.range])),
+                     init=NULL)
+  plot.with.range(dyn.mean, dyn.sd, x=steps.range,
                   main="Plasmid Replication Parameters",
                   col=c("blue", "red", "green"),
                   xlab="Time", ylab="")
-  legend("topleft", c(expression(beta), expression(kappa), expression(alpha)),
+  legend("topleft", c(expression(beta),
+                      expression(kappa),
+                      expression(alpha))[1:length(z.names)],
          lwd=1, col=c("blue", "red", "green"))
-  
+
+  ## plot components of selection due to the specified events
+  for (level in level.names) {
+    for (z.name in z.names) {
+      ## plot time series
+      nr <- dz[[z.name]][[paste(level,"nr",sep=".")]][steps.range]
+      nd <- dz[[z.name]][[paste(level,"death",sep=".")]][steps.range]
+      total <- nr + nd
+      mplot(steps.range, cbind(total, nr, nd), xlab="Time",
+            main=paste(z.name, level, sep=" "),
+            col=c("black", "blue", "red"))
+      abline(h=0)
+      legend("bottomleft", c("total", "nr", "death"),
+             lwd=1, col=c("black", "blue", "red"))
+    }
+  }
+
+  layout(matrix(1))
   
 }
 

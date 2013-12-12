@@ -19,17 +19,17 @@ price.load.bka <- function(fname="/data/dps/bka/results.15.h5") dps.load(fname)
 ## ===========================================================================
 ## plots the evolutionary dynamics of beta, kappa and alpha
 ## to plot use:  png("fig1.png", width=800, height=500)
-price.plot.fig1 <- function( results.bka, highlight=F ) {
+price.plot.fig1 <- function( results, highlight=F ) {
 
 
   layout(matrix(1))
   ## plot plasmid replication parameters
-  plot.with.range(cbind(results.bka$dynamics$global$M$beta,
-                        results.bka$dynamics$global$M$kappa,
-                        results.bka$dynamics$global$M$alpha),
-                  cbind(sqrt(results.bka$dynamics$global$V$beta),
-                        sqrt(results.bka$dynamics$global$V$kappa),
-                        sqrt(results.bka$dynamics$global$V$alpha)),
+  plot.with.range(cbind(results$dynamics$global$M$beta,
+                        results$dynamics$global$M$kappa,
+                        results$dynamics$global$M$alpha),
+                  cbind(sqrt(results$dynamics$global$V$beta),
+                        sqrt(results$dynamics$global$V$kappa),
+                        sqrt(results$dynamics$global$V$alpha)),
                   main="", col=c("blue", "red", "green"), ylim=c(0,1),
                   xlab="Evolutionary Time", ylab="", xaxt='n')
 
@@ -38,8 +38,8 @@ price.plot.fig1 <- function( results.bka, highlight=F ) {
 
   if (highlight) {
 
-    start <- 1e5
-    end <- 2e5
+    start <- 2e5
+    end <- 3e5
 
     x <- c(start, start, end, end)
     y <- c(0, 1, 1, 0)
@@ -62,13 +62,13 @@ price.plot.fig1 <- function( results.bka, highlight=F ) {
 ## ===========================================================================
 ## plots the dynamics of the Price equation components for bka
 ## to plot use: pdf("fig2.pdf", width=15, height=10)
-price.plot.fig2 <- function(results.bka, dz, steps.range=c(1e5, 2e5),
-                      price.ylim=c(-1.5e-5, 1.5e-5)) {
+price.plot.fig2 <- function(results, dz, steps.range=c(2e5, 3e5),
+                            price.ylim=c(-1e-5, 1e-5)) {
 
 
   ## calculate steps.range
   if (length(steps.range) != 2) 
-    steps.range <- 1:nrow(results.bka$dynamics$global$M)
+    steps.range <- 1:nrow(results$dynamics$global$M)
   else
     steps.range <- steps.range[1]:steps.range[2]
 
@@ -86,8 +86,8 @@ price.plot.fig2 <- function(results.bka, dz, steps.range=c(1e5, 2e5),
                          kappa="topleft",
                          alpha="topright")
 
-    dyn <- results.bka$dynamics$global$M[[name]][steps.range]
-    dyn.sd <- sqrt(results.bka$dynamics$global$V[[name]][steps.range])
+    dyn <- results$dynamics$global$M[[name]][steps.range]
+    dyn.sd <- sqrt(results$dynamics$global$V[[name]][steps.range])
     dyn.ylim <- range(c(dyn-dyn.sd, dyn+dyn.sd))
 
     ## plot the evolutionary dynamics
@@ -104,13 +104,10 @@ price.plot.fig2 <- function(results.bka, dz, steps.range=c(1e5, 2e5),
 
     i <- i+1
 
-
     total = dz[[name]]$total[steps.range]
     inter = dz[[name]]$inter[steps.range]
     intra = dz[[name]]$intra[steps.range]
     tbias = dz[[name]]$tbias[steps.range]
-
-    
 
     ## plot the Price Equation components
     mplot(steps.range,
@@ -155,51 +152,60 @@ price.plot.fig2 <- function(results.bka, dz, steps.range=c(1e5, 2e5),
 
 
 
+
+
 ## ===========================================================================
-## plots the metrics for hosts as a function of pconj
-## for plotting use: pdf("fig3.pdf", width=8, height=3)
-price.plot.fig3 <- function( results ) {
+## plot the distributions of global and tbias at equilibrium
+## to plot use :  pdf("fig3.pdf", width=6, height=4)
+price.plot.fig3 <- function(dz, steps.range=c(8e5,10e5)) {
+
+  ## calculate steps.range
+  if (length(steps.range) != 2) 
+    steps.range <- 1:nrow(dz$beta)
+  else
+    steps.range <- steps.range[1]:steps.range[2]
+
+  z.names <- c("beta", "kappa", "alpha")
 
   ## store settings
   layout(matrix(1:3, nrow=1, byrow=T))
 
-  ## plot host performance
-  mplot(results$pconj, results$M$custom$cn,
-        main="Host Copy Number", ylab="", xlab=expression(p[c]),
-        log.take="x")
-  ## plot host division rate
-  mplot(results$pconj, results$M$custom$div.inf,
-        main="Host Division Rate", ylab="", xlab=expression(p[c]),
-        log.take="x")
-  ## plot host death rate
-  mplot(results$pconj, results$M$custom$death,
-        main="Host Death Rate", ylab="", xlab=expression(p[c]),
-        log.take="x")
+  ## plot dynamics
+  lapply(z.names,
+         function(z.name) {
+           main <- switch(z.name,
+                          beta=expression(beta),
+                          kappa=expression(kappa),
+                          alpha=expression(alpha))
+           mplot(dz[[z.name]]$tbias, ylim=c(-2e-6, 2e-6),
+                 main=main)
+           abline(h=0)
+         })
   
-
   layout(matrix(1))
-
+  
 }
 
 
 
 
-
 ## ===========================================================================
-## plot the mean plasmid values as a function of pconj
-## to plot use :  pdf("fig4.pdf", width=6, height=4)
-price.plot.fig4 <- function( results ) {
+## plot the decline of intra beta over time
+## to plot use :  pdf("fig4.pdf", width=6, height=6)
+price.plot.fig4 <- function( dz ) {
 
-  ## plot beta
-  mplot(results$pconj,
-        cbind(results$M$global$M$beta,
-              results$M$global$M$kappa,
-              results$M$global$M$alpha),
-        main="", ylim=c(0.4, 1), xlab=expression(p[c]),
-        log.take="x")
+  intra.beta <- log10(dz$beta$intra)
 
-  legend("left", c(expression(beta), expression(kappa), expression(alpha)),
-         lwd=1, box.lwd=0, col=c("blue", "red", "green"))
+  rng <- range(intra.beta, na.rm=T)
+
+  plot(log10(dz$beta$intra), t="l", xlab="Evolutionary Time", ylab="",
+       main=expression(paste("Within-host Selection on ", beta)), col="blue",
+       xaxt='n', yaxt='n', ylim=c(floor(rng[1]), rng[2]))
+  decorate.log("y")
+
+  ## mark the time ticks properly
+  xticks.at <- 10000 * seq(0, 100, 25)
+  axis(1, at=xticks.at)
 
 }
 
