@@ -225,10 +225,6 @@ dps.calc.association <- function( dynamics, names, norm.by="xy", plot=F, steps.r
 }
 
 
-
-
-
-
 ## ==========================================================================
 ## loads and returns the saved dz object calculated by dps.calc.price()
 dps.load.price <- function(fname) {
@@ -249,99 +245,12 @@ dps.save.price <- function(dz, fname) {
 
 
 
-
-## ==========================================================================
-## calculates and returns the 3 components of the price equation
-## for beta, kappa and alpha using a single core
-## STEPS.RANGE is a 2-tuple
-dps.calc.price.single.core <- function(results, window.size=500, steps.range=NA, 
-                                       decompose=F, correlations=F, relatedness=T)
-{
-
-  if (length(steps.range) != 2) 
-    take.steps <- 1:length(results$dynamics$global$M$fitness)
-  else
-    take.steps <- steps.range[1]:steps.range[2]
-  
-  dz <- list(fitness=ma(results$dynamics$global$M$fitness[take.steps],
-                 window.size=window.size),
-             window.size=window.size)
-
-  for (z.name in c("beta", "kappa", "alpha")) {
-
-    ## calculate and store transmission bias
-    dz[[z.name]] <- data.frame(
-        tbias=ma(
-            results$dynamics$global$M[[sprintf("t%s", z.name)]][take.steps],
-            window.size=window.size) / dz$fitness)
-
-    ## calculate covariances
-    for (level in c("global", "inter", "intra")) {
-
-      dz[[z.name]][[level]] <-
-        ma(dps.calc.association(results$dynamics[[level]],
-                                sprintf("%s.fitness", z.name),
-                                norm.by="",
-                                steps.range=steps.range),
-           window.size=window.size) / dz$fitness
-
-      if (decompose) {
-
-        for (name in c("nr", "ht", "death")) {
-
-          dz[[z.name]][[sprintf("%s.%s", level, name)]] <-
-            ma(dps.calc.association(results$dynamics[[level]],
-                                    sprintf("%s.%s", z.name, name),
-                                    norm.by="",
-                                    steps.range=steps.range),
-               window.size=window.size) / dz$fitness
-        }
-      }
-    }
-
-    ## Calculate total selection
-    dz[[z.name]][["total"]] <- dz[[z.name]]$global + dz[[z.name]]$tbias
-
-    ## Calculate relatedness
-    if (relatedness) {
-      dz[[z.name]]$r <- ma(results$dynamics$relatedness$wg$cov[[z.name]][take.steps] /
-                           results$dynamics$relatedness$wg$var[[z.name]][take.steps],
-                           window.size=window.size)
-      dz[[z.name]]$r.oo <- ma(results$dynamics$relatedness$oo$cov[[z.name]][take.steps] /
-                              results$dynamics$relatedness$oo$var[[z.name]][take.steps],
-                              window.size=window.size)
-    }
-    
-  }
-
-  if (correlations) {
-
-    dz$beta.alpha <- ma(dps.calc.association(results$dynamics$intra,
-                                             "beta.alpha",
-                                             norm.by="",
-                                             steps.range=steps.range),
-                        window.size=window.size)
-    dz$kappa.alpha <- ma(dps.calc.association(results$dynamics$intra,
-                                              "kappa.alpha",
-                                              norm.by="",
-                                              steps.range=steps.range),
-                         window.size=window.size)
-    
-  }
-  
-  dz
-  
-}
-
-
-
-
 ## ==========================================================================
 ## calculates and returns the 3 components of the price equation
 ## for beta, kappa and alpha (uses 3 cores to do that in parallel)
 ## STEPS.RANGE is a 2-tuple
 dps.calc.price <- function(results, window.size=500, steps.range=NA, 
-                           decompose=F, correlations=F, relatedness=T)
+                           decompose=T, correlations=F, relatedness=T)
 {
 
   if (length(steps.range) != 2) 
@@ -353,57 +262,65 @@ dps.calc.price <- function(results, window.size=500, steps.range=NA,
                  window.size=window.size),
              window.size=window.size)
 
-  calc.price.for.var <- function(z.name) {
+  ## returns a list with members: z.name, and if decompose: "nr", "ht", "death"
+  calc.components.for.level <- function(z.name, level) {
+    l <- list()
+    l[[level]] <- ma(dps.calc.association(results$dynamics[[level]],
+                                          paste(z.name, "fitness", sep="."),
+                                          norm.by="",
+                                          steps.range=steps.range),
+                     window.size=window.size) / dz$fitness
+    if (decompose) {
+      for (name in c("nr", "ht", "death")) {
+        l[[paste(level, name, sep=".")]] <-
+          ma(dps.calc.association(results$dynamics[[level]],
+                                  paste(z.name, name, sep="."),
+                                  norm.by="",
+                                  steps.range=steps.range),
+             window.size=window.size) / dz$fitness
+      }
+    }
+    l
+  }
 
+  ## returns a list with all the price components calculated
+  ## for variable Z.NAME
+  calc.price.for.var <- function(z.name) {
     ## calculate and store transmission bias
     r <- data.frame(tbias=ma(
                         results$dynamics$global$M[[sprintf("t%s", z.name)]][take.steps],
                         window.size=window.size) / dz$fitness)
-    
+
     ## calculate covariances
-    for (level in c("global", "inter", "intra")) {
-
-      r[[level]] <-
-        ma(dps.calc.association(results$dynamics[[level]],
-                                sprintf("%s.fitness", z.name),
-                                norm.by="",
-                                steps.range=steps.range),
-           window.size=window.size) / dz$fitness
-
-      if (decompose) {
-
-        for (name in c("nr", "ht", "death")) {
-
-          r[[sprintf("%s.%s", level, name)]] <-
-            ma(dps.calc.association(results$dynamics[[level]],
-                                    sprintf("%s.%s", z.name, name),
-                                    norm.by="",
-                                    steps.range=steps.range),
-               window.size=window.size) / dz$fitness
-        }
-      }
-
-      ## Calculate total selection
-      r[["total"]] <- r$global + r$tbias
-
-      ## Calculate relatedness
-      if (relatedness) {
-        r$r <- ma(results$dynamics$relatedness$oo$cov[[z.name]][take.steps] /
-                  results$dynamics$relatedness$oo$var[[z.name]][take.steps],
-                  window.size=window.size)
-        r$r.wg <- ma(results$dynamics$relatedness$wg$cov[[z.name]][take.steps] /
-                     results$dynamics$relatedness$wg$var[[z.name]][take.steps],
-                     window.size=window.size)
-      }
+    level.names <- c("global", "inter", "intra")
+    vars <- mclapply(level.names,
+                     function(level) calc.components.for.level(z.name, level),
+                     mc.preschedule=F, mc.cores=length(level.names))
+    ## attach all the results to data.frame r
+    for (v in vars)
+      for (v.name in names(v))
+        r[[v.name]] <- v[[v.name]]
+    ## Calculate total selection
+    r$total <- r$global + r$tbias
+    ## Calculate relatedness
+    if (relatedness) {
+      r$r <- ma(results$dynamics$relatedness$oo$cov[[z.name]][take.steps] /
+                results$dynamics$relatedness$oo$var[[z.name]][take.steps],
+                window.size=window.size)
+      r$r.wg <- ma(results$dynamics$relatedness$wg$cov[[z.name]][take.steps] /
+                   results$dynamics$relatedness$wg$var[[z.name]][take.steps],
+                   window.size=window.size)
     }
 
+    ## return r
     r
     
   }
 
   ## calculate price equation components
   z.names <- c("beta", "kappa", "alpha")
-  vars <- mclapply(z.names, calc.price.for.var, mc.cores=3)
+  vars <- mclapply(z.names, calc.price.for.var,
+                   mc.preschedule=F, mc.cores=length(z.names))
   names(vars) <- z.names
   dz <- c(dz, vars)
 
@@ -505,6 +422,35 @@ dps.plot.price <- function( results, dz=NULL, window.size=0, steps.range=NA,
 
   layout(matrix(1))
 
+}
+
+
+
+## =========================================================================
+## plot the dynamics of price equation events components
+dps.plot.price.events <- function(results, dz, steps.range=NA) {
+
+  ## calculate steps.range
+  if (length(steps.range) != 2) 
+    steps.range <- 1:nrow(dz$beta)
+  else
+    steps.range <- steps.range[1]:steps.range[2]
+
+  ## plot evolutionary dynamics of beta, kappa, alpha
+  plot.with.range(cbind(results$dynamics$global$M$beta[steps.range],
+                        results$dynamics$global$M$kappa[steps.range],
+                        results$dynamics$global$M$alpha[steps.range]),
+                  cbind(sqrt(results$dynamics$global$V$beta[steps.range]),
+                        sqrt(results$dynamics$global$V$kappa[steps.range]),
+                        sqrt(results$dynamics$global$V$alpha[steps.range])),
+                  x=steps.range,
+                  main="Plasmid Replication Parameters",
+                  col=c("blue", "red", "green"),
+                  xlab="Time", ylab="")
+  legend("topleft", c(expression(beta), expression(kappa), expression(alpha)),
+         lwd=1, col=c("blue", "red", "green"))
+  
+  
 }
 
 
@@ -874,15 +820,15 @@ dps.plot.relatedness <- function( results, dz=NULL, window.size=0,
     ## plot relatedness time series
     mplot(steps.range,
           cbind(dz[[name]]$r[steps.range],
-                dz[[name]]$r.oo[steps.range]),
+                dz[[name]]$r.wg[steps.range]),
           main=sprintf("Relatedness (%s)", name),
           xlab="Time", ylab="")
-    legend("bottomright", c("WG", "OO"),
+    legend("bottomright", c("OO", "WG"),
            lwd=1, col=c("blue", "red"))
 
-    print(sprintf("%s | WG=%.3e | OO=%.3e", name,
+    print(sprintf("%s | OO=%.3e | WG=%.3e", name,
                   mean(dz[[name]]$r[steps.range] ,na.rm=T),
-                  mean(dz[[name]]$r.oo[steps.range] ,na.rm=T)))
+                  mean(dz[[name]]$r.wg[steps.range] ,na.rm=T)))
 
   }
 
