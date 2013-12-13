@@ -18,9 +18,10 @@ price.load.bka <- function(fname="/data/dps/bka/results.15.h5") dps.load(fname)
 
 ## ===========================================================================
 ## plots the evolutionary dynamics of beta, kappa and alpha
-## to plot use:  png("fig1.png", width=800, height=500)
-price.plot.fig1 <- function( results, highlight=F ) {
+price.plot.fig1 <- function( results, highlight=F, plot=F ) {
 
+  if (plot)
+    pdf("fig1.pdf", width=6, height=6)
 
   layout(matrix(1))
   ## plot plasmid replication parameters
@@ -51,6 +52,9 @@ price.plot.fig1 <- function( results, highlight=F ) {
   ## mark the time ticks properly
   xticks.at <- 10000 * seq(0, 100, 25)
   axis(1, at=xticks.at)
+
+  if (plot)
+    dev.off()
   
 }
 
@@ -61,9 +65,8 @@ price.plot.fig1 <- function( results, highlight=F ) {
 
 ## ===========================================================================
 ## plots the dynamics of the Price equation components for bka
-## to plot use: pdf("fig2.pdf", width=15, height=10)
 price.plot.fig2 <- function(results, dz, steps.range=c(2e5, 3e5),
-                            price.ylim=c(-1e-5, 1e-5)) {
+                            price.ylim=c(-1e-5, 1e-5), plot=F) {
 
 
   ## calculate steps.range
@@ -71,6 +74,9 @@ price.plot.fig2 <- function(results, dz, steps.range=c(2e5, 3e5),
     steps.range <- 1:nrow(results$dynamics$global$M)
   else
     steps.range <- steps.range[1]:steps.range[2]
+
+  if (plot)
+    pdf("fig2.pdf", width=15, height=10)
 
   layout(matrix(1:6, ncol=3, byrow=F))
 
@@ -146,6 +152,9 @@ price.plot.fig2 <- function(results, dz, steps.range=c(2e5, 3e5),
 
   }
 
+  if (plot)
+    dev.off()
+
   layout(matrix(1))
   
 }
@@ -155,34 +164,33 @@ price.plot.fig2 <- function(results, dz, steps.range=c(2e5, 3e5),
 
 
 ## ===========================================================================
-## plot the distributions of global and tbias at equilibrium
-## to plot use :  pdf("fig3.pdf", width=6, height=4)
-price.plot.fig3 <- function(dz, steps.range=c(8e5,10e5)) {
+## plot the dynamics of tbiases
+price.plot.fig3 <- function(dz, plot=F) {
 
-  ## calculate steps.range
-  if (length(steps.range) != 2) 
-    steps.range <- 1:nrow(dz$beta)
-  else
-    steps.range <- steps.range[1]:steps.range[2]
+  if (plot)
+    pdf("fig3.pdf", w=6, h=6)
 
-  z.names <- c("beta", "kappa", "alpha")
-
-  ## store settings
-  layout(matrix(1:3, nrow=1, byrow=T))
-
-  ## plot dynamics
-  lapply(z.names,
-         function(z.name) {
-           main <- switch(z.name,
-                          beta=expression(beta),
-                          kappa=expression(kappa),
-                          alpha=expression(alpha))
-           mplot(dz[[z.name]]$tbias, ylim=c(-2e-6, 2e-6),
-                 main=main)
-           abline(h=0)
-         })
-  
   layout(matrix(1))
+  mplot(Reduce(cbind,
+               lapply(c("beta", "kappa", "alpha"),
+                      function(z.name) dz[[z.name]]$tbias),
+               init=NULL), xaxt='n', yaxt='n',
+        ylim=c(-3e-6, 3e-6),
+        main=expression(paste("Transmission Biases (x", 10^-6,")")),
+        xlab="Evolutionary Time")
+  abline(h=0)
+  ## mark the time ticks properly
+  xticks.at <- 10000 * seq(0, 100, 25)
+  axis(1, at=xticks.at)
+  ## draw the Y axis (major ticks)
+  axis(2, at=seq(-3e-6, 3e-6, 1.5e-6),
+       labels=seq(-3, 3, 1.5))
+  ##cex.axis=1.5)
+
+  if (plot)
+    dev.off()
+  
+  
   
 }
 
@@ -191,8 +199,10 @@ price.plot.fig3 <- function(dz, steps.range=c(8e5,10e5)) {
 
 ## ===========================================================================
 ## plot the decline of intra beta over time
-## to plot use :  pdf("fig4.pdf", width=6, height=6)
-price.plot.fig4 <- function( dz ) {
+price.plot.fig4 <- function( dz, plot=F ) {
+
+  if (plot)
+    pdf("fig4.pdf", w=6, h=6)
 
   intra.beta <- log10(dz$beta$intra)
 
@@ -207,6 +217,9 @@ price.plot.fig4 <- function( dz ) {
   xticks.at <- 10000 * seq(0, 100, 25)
   axis(1, at=xticks.at)
 
+  if (plot)
+    dev.off()
+
 }
 
 
@@ -216,245 +229,61 @@ price.plot.fig4 <- function( dz ) {
 
 
 
-
-
-
-
 ## ===========================================================================
-## plots the metrics for plasmids as a function of pconj
-## for plotting use: pdf("fig5.pdf", width=8, height=4)
-price.plot.fig5 <- function( results ) {
+## plot relatedness 
+price.plot.fig5 <- function(dz, plot=F ) {
 
-  ## store settings
-  layout(matrix(1:2, nrow=1, byrow=T))
+  if (plot)
+    pdf("fig5.pdf", w=6, h=6)
+
+  layout(matrix(1))
 
   ## plot plasmid rep rate
-  mplot(results$pconj, results$M$global$M$nr,
-        main="Plasmid Replication Rate", ylab="", xlab=expression(p[c]),
-        log.take="x")
-  ## plot plasmid conj rate
-  mplot(results$pconj, results$M$global$M$ht,
-        main="Plasmid Conjugation Rate", ylab="", xlab=expression(p[c]),
-        log.take="x")
+  mplot(Reduce(cbind,
+               lapply(c("beta", "kappa", "alpha"),
+                      function(z.name) dz[[z.name]]$r),
+               init=NULL),
+        main="Relatedness", xlab="Evolutionary Time",
+        xaxt='n', ylim=c(0.5, 1))
 
-  layout(matrix(1))
+  ## mark the time ticks properly
+  xticks.at <- 10000 * seq(0, 100, 25)
+  axis(1, at=xticks.at)
+      
+  if (plot)
+    dev.off()
 
 }
-
-
 
 
 ## ===========================================================================
-## plot plasmid parameter variance as a function of pconj
-## for plotting use: pdf("fig6.pdf", width=8, height=3)
-price.plot.fig6 <- function(results) {
+## plot plasmid parameter variance
+price.plot.fig6 <- function(dz, plot=F ) {
 
-  layout(matrix(1:3, nrow=1))
-
-  ## plot beta
-  mplot(results$pconj.values,
-        cbind(sqrt(results$M$global$V$beta),
-              sqrt(results$M$inter$V$beta),
-              sqrt(results$M$intra$V$beta)),
-        ylim=c(log10(1e-3), log10(4e-2)),
-        main=expression(sigma(beta)),
-        xlab=expression(p[c]), type="l", log="xy")
-
-  legend("bottomright", c("global", "inter", "intra"),
-         lwd=1, col=c("blue", "red", "green"))
-
-  mplot(results$pconj.values,
-        cbind(sqrt(results$M$global$V$kappa),
-              sqrt(results$M$inter$V$kappa),
-              sqrt(results$M$intra$V$kappa)),
-        ylim=c(log10(1e-3), log10(4e-2)),
-        main=expression(sigma(kappa)),
-        xlab=expression(p[c]), type="l", log="xy")
-  
-  mplot(results$pconj.values,
-        cbind(sqrt(results$M$global$V$alpha),
-              sqrt(results$M$inter$V$alpha),
-              sqrt(results$M$intra$V$alpha)),
-        ylim=c(log10(1e-3), log10(4e-2)),
-        main=expression(sigma(alpha)),
-        xlab=expression(p[c]), type="l", log="xy")
-        
-  layout(matrix(1))
-
-  
-}
-
-
-
-
-
-
-
-## ===========================================================================
-## plots the averages of the Price equation components as a function of pconj
-## to plot use: pdf("fig7.pdf", width=16, height=6)
-price.plot.fig7 <- function(results) {
-
-
-  layout(matrix(1:3, nrow=1, byrow=T))
-
-
-  ## create a 1-row/3-col plot with blue:inter, red:intra and different
-  ## line types for each component (n^R, n^H ...)
-
-  for (name in c("beta", "kappa", "alpha")) {
-
-    ylim <- switch(name,
-                   beta=c(-2e-5, 2e-5),
-                   kappa=c(-2e-5, 2e-5),
-                   alpha=c(-2e-6, 2e-6))
-    ##ylim <- NA
-
-    main <- switch(name,
-                   beta=expression(paste("Selection on ", beta, "  (x", 10^-5, ")")),
-                   kappa=expression(paste("Selection on ", kappa, "  (x", 10^-5, ")")),
-                   alpha=expression(paste("Selection on ", alpha, "  (x", 10^-6, ")")))
-
-    ##ylim <- c(-2e-5, 2e-5)
-
-    inter <- cbind(sapply(c("fitness", "nr", "ht", "death"),
-                          function (fname)
-                          results$M$inter$C[[sprintf("%s.%s", name, fname)]],
-                          USE.NAMES=F))
-
-    intra <- cbind(sapply(c("fitness", "nr", "ht", "death"),
-                          function (fname)
-                          results$M$intra$C[[sprintf("%s.%s", name, fname)]],
-                          USE.NAMES=F))
-
-    tbias <- results$M$global$M[[sprintf("t%s", name)]]
-
-    ## change signs in DEATH columns
-    inter[,4] <- - inter[,4]
-    intra[,4] <- - intra[,4]
-
-    mplot(results$pconj.values,
-          cbind(inter, intra, tbias), 
-          col=c(rep("blue",4), rep("red",4), "green"), ylim=ylim,
-          main=main, log.take="x",
-          xlab=expression(p[c]), yaxt="n",
-          cex.main=2.5, cex.lab=2, cex.axis=2, ltype=1:4)
-
-    ## draw the Y axis (major ticks)
-    axis(2,
-         at=switch(name,
-           beta=seq(-2e-5, 2e-5, 1e-5),
-           kappa=seq(-2e-5, 2e-5, 1e-5),
-           alpha=seq(-2e-6, 2e-6, 1e-6)),
-         labels=switch(name,
-           beta=seq(-2, 2, 1),
-           kappa=seq(-2, 2, 1),
-           alpha=seq(-2, 2, 1)),
-         cex.axis=2)
-    
-    abline(h=0)
-
-    if (name == "beta") {
-      legend("topleft",
-             c("Total Selection (intra)",
-               expression(paste("Selection due to ", n^R, " (intra)")),
-               expression(paste("Selection due to ", n^H, " (intra)")),
-               expression(paste("Selection due to ", n^D, " (intra)"))),
-             lwd=1, lty=1:4, bty="n", cex=2, col="red")
-      legend("bottomleft",
-             c("Total Selection (inter)",
-               expression(paste("Selection due to ", n^R, " (inter)")),
-               expression(paste("Selection due to ", n^H, " (inter)")),
-               expression(paste("Selection due to ", n^D, " (inter)"))),
-             lwd=1, lty=1:4, bty="n", cex=2, col="blue")
-      legend("topleft", "Transmission Bias", inset=c(0, 0.3),
-             lwd=1, bty="n", cex=2, col="green")
-    }
-  }
+  if (plot)
+    pdf("fig6.pdf", w=6, h=6)
 
   layout(matrix(1))
 
-}
+  y <- cbind(log10(sqrt(dz$variance$inter)),
+             log10(sqrt(dz$variance$intra)))
 
+  rng <- range(y, na.rm=T)
 
-## ==================================================================================
-## plot the intra-cellular covariances of (beta,alpha) and (kappa, alpha)
-## as a function of pconj
-## to plot use :  pdf("fig8.pdf", width=8, height=5)
-price.plot.fig8 <- function( results ) {
+  mplot(y, xaxt='n', yaxt='n', ylim=c(-3, -1),
+        main="Plasmid Parameter Variance", xlab="Evolutionary Time")
+  decorate.log("y")
+  abline(h=log10(3e-3), lty=2)
 
-  level = "intra"
+  text(0, c(-1, -2.9), c("Between Hosts", "Within Hosts"),
+       cex=3, adj=c(0, 1))
 
-  layout(matrix(1))
+  ## mark the time ticks properly
+  xticks.at <- 10000 * seq(0, 100, 25)
+  axis(1, at=xticks.at)
+      
+  if (plot)
+    dev.off()
 
-  mplot(results$pconj,
-        cbind(results$M[[level]]$C$beta.alpha,
-              results$M[[level]]$C$kappa.alpha),
-              ##results$M[[level]]$C$alpha.fitness),
-        xlab=expression(p[c]), ylab="", type="l",
-        main=expression(paste("Average Within-Host Covariances",
-            "  (x", 10 ^ -6, ")")),
-        log.take="x", yaxt="n",
-        ylim=c(-4e-6, 4e-6))
-  axis(2, at=seq(-4e-6, 4e-6, 2e-6),
-       labels=seq(-4, 4, 2),
-       cex.axis=1)
-  abline(h=0)
-
-  ## plot error bars
-  ## error.bar(log10(results$pconj),
-  ##           cbind(results$M[[level]]$C$beta.alpha,
-  ##                 results$M[[level]]$C$kappa.alpha),
-  ##                 ##results$M[[level]]$C$alpha.fitness),
-  ##           cbind(results$S[[level]]$C$beta.alpha,
-  ##                 results$S[[level]]$C$kappa.alpha)  / sqrt(results$runs),
-  ##           ##results$S[[level]]$C$alpha.fitness),
-  ##           col=matrix(rep(c("blue", "red"),
-  ##             length(results$pconj)), ncol=2, byrow=T))
-  
-  ## legend("topleft",
-  ##        c(expression(paste("<", E[i], "[cov"[j], "(", beta, ",", alpha, ")]>")),
-  ##          expression(paste("<", E[i], "[cov"[j], "(", kappa, ",", alpha, ")]>"))),
-  ##        lwd=1, col=c("blue", "red"))
-                      
-        
-}
-
-
-
-## ==================================================================================
-## ==================================================================================
-##                              AD-HOC FUNCTIONS
-## ==================================================================================
-## ==================================================================================
-
-
-
-## relatedness
-
-plot.relatedness <- function(results) {
-
-  wg.mean <- data.frame(Reduce(cbind, results$M$relatedness$wg, c()))
-  oo.mean <- data.frame(Reduce(cbind, results$M$relatedness$oo, c()))
-
-  var.names <- c("beta", "kappa", "alpha")
-
-  names(wg.mean) <- var.names
-  names(oo.mean) <- var.names
-
-  layout(matrix(1:3, nrow=1))
-
-  for (var.name in var.names) {
-
-    mplot(results$pconj, cbind(wg.mean[[var.name]], oo.mean[[var.name]]),
-          xlab=expression(p[c]), ylab="", type="l",
-          log.take="x", main=sprintf("Relatedness (%s)", var.name))
-  
-    legend("bottomleft", c("whole-group", "others-only"),
-           lwd=1, col=c("blue", "red"))
-  }
-
-  layout(matrix(1))
-  
 }
 
