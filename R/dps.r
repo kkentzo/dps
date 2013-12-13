@@ -250,7 +250,8 @@ dps.save.price <- function(dz, fname) {
 ## for beta, kappa and alpha (uses 3 cores to do that in parallel)
 ## STEPS.RANGE is a 2-tuple
 dps.calc.price <- function(results, window.size=500, steps.range=NA, 
-                           decompose=T, correlations=F, relatedness=T)
+                           decompose=T, relatedness=T,
+                           variance=T, correlations=F)
 {
 
   if (length(steps.range) != 2) 
@@ -339,8 +340,45 @@ dps.calc.price <- function(results, window.size=500, steps.range=NA,
                          window.size=window.size)
     
   }
+
+  ## calculate moving averages for variances?
+  if (variance)
+    dz$variance <- dps.calc.variance(results, window.size, steps.range)
   
   dz
+  
+}
+
+
+
+## =========================================================================
+## calculate the moving averages of the plasmid parameters variances
+## returns a list with the data.frames global, inter, intra
+dps.calc.variance <- function(results, window.size=500, steps.range=NA) {
+
+  if (length(steps.range) != 2) 
+    take.steps <- 1:length(results$dynamics$global$M$fitness)
+  else
+    take.steps <- steps.range[1]:steps.range[2]
+
+  level.names <- c("global", "inter", "intra")
+
+  l <-
+    mclapply(level.names,
+             function(level.name) {
+               z.names <- c("beta", "kappa", "alpha")
+               ll <- mclapply(z.names,
+                              function(z.name) {
+                                ma(results$dynamics[[level.name]]$V[[z.name]][take.steps],
+                                   window.size=window.size)
+                              }, mc.cores=length(z.names))
+               names(ll) <- z.names
+               as.data.frame(ll)
+             }, mc.cores=length(level.names))
+
+  names(l) <- level.names
+
+  l
   
 }
 
