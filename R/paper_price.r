@@ -15,7 +15,6 @@ tryCatch(suppressWarnings(source('dps.r')),
 price.load.bka <- function(fname="/data/dps/bka/results.15.h5") dps.load(fname)
 
 
-
 ## ===========================================================================
 ## plots the evolutionary dynamics of beta, kappa and alpha
 price.plot.fig1 <- function( results, highlight=F, plot=F ) {
@@ -99,9 +98,9 @@ price.plot.fig2 <- function(results, dz, steps.range=c(2e5, 3e5),
     ## plot the evolutionary dynamics
     plot.with.range(dyn, dyn.sd, x=steps.range, ylim=dyn.ylim,
                     main=switch(name,
-                      beta=expression(paste("Evolutionary Dynamics of ", bar(beta))),
-                      kappa=expression(paste("Evolutionary Dynamics of ", bar(kappa))),
-                      alpha=expression(paste("Evolutionary Dynamics of ", bar(alpha)))),
+                        beta=expression(paste("Evolutionary Dynamics of ", bar(beta))),
+                        kappa=expression(paste("Evolutionary Dynamics of ", bar(kappa))),
+                        alpha=expression(paste("Evolutionary Dynamics of ", bar(alpha)))),
                     xlab="Evolutionary Time", ylab="", col="black",
                     cex.main=2, cex.axis=1.5, cex.lab=1.5)
     
@@ -115,19 +114,20 @@ price.plot.fig2 <- function(results, dz, steps.range=c(2e5, 3e5),
     intra = dz[[name]]$intra[steps.range]
     tbias = dz[[name]]$tbias[steps.range]
 
+    ## print out some info
+    cat("==> ", name, "\n")
+    cat("inter = ", mean(inter, na.rm=T), "\n")
+    cat("intra = ", mean(intra, na.rm=T), "\n")
+
     ## plot the Price Equation components
-    mplot(steps.range,
-          cbind(dz[[name]]$total[steps.range],
-                dz[[name]]$inter[steps.range],
-                dz[[name]]$intra[steps.range],
-                dz[[name]]$tbias[steps.range]),
+    mplot(steps.range, cbind(total, inter, intra, tbias),
           main=switch(name,
             beta=expression(paste("Price Equation Components of ",
-                Delta,bar(beta), "  (x", 10^-5,")")),
+              Delta,bar(beta), "  (x", 10^-5,")")),
             kappa=expression(paste("Price Equation Components of ",
-                Delta,bar(kappa), "  (x", 10^-5,")")),
+              Delta,bar(kappa), "  (x", 10^-5,")")),
             alpha=expression(paste("Price Equation Components of ",
-                Delta,bar(alpha), "  (x", 10^-5,")"))),
+              Delta,bar(alpha), "  (x", 10^-5,")"))),
           ylim=price.ylim, yaxt="n",
           xlab="Evolutionary Time", ylab="", 
           col=c("black", "blue", "red", "green"),
@@ -256,12 +256,103 @@ price.plot.fig5 <- function(dz, plot=F ) {
 }
 
 
+
 ## ===========================================================================
-## plot plasmid parameter variance
-price.plot.fig6 <- function(dz, plot=F ) {
+## plot the copy number distributions over time
+price.plot.fig6 <- function(results, plot=F ) {
 
   if (plot)
     pdf("fig6.pdf", w=6, h=6)
+
+  layout(matrix(1))
+  
+  x <- 0.5 + results$histograms$cn$x
+  y <- t(results$histograms$cn$y)
+
+  print(ncol(y))
+
+  ## exclude n=0 from plot
+  y <- y[2:length(x),]
+  x <- x[2:length(x)]
+  mplot(log10(x), y, main="Copy Number Distributions",
+        xlab=expression(n), ylab=expression(paste("Frequency (x", 10^6, ")")),
+        xaxt='n', yaxt='n',
+        col=redgreen(ncol(y)))
+  decorate.log("x")
+  ## draw the Y axis (major ticks)
+  axis(2, at=seq(0, 6e6, 1e6),
+       labels=seq(0, 6, 1))
+  
+  abline(v=log10(7), lty="dashed")
+
+  if (plot)
+    dev.off()
+
+}
+
+
+
+## ===========================================================================
+## plot BHS on beta with events
+price.plot.fig7 <- function(dz, plot=F, steps.range=c(1,5e5)) {
+
+  ## calculate steps.range
+  if (length(steps.range) != 2) 
+    steps.range <- 1:nrow(dz$beta)
+  else
+    steps.range <- steps.range[1]:steps.range[2]
+
+  if (plot)
+    pdf("fig6.pdf", w=10, h=6)
+
+  layout(matrix(1:3, ncol=3))
+
+  rng <- range(steps.range)
+  xticks <- as.integer(seq(rng[1]-1, rng[2], 1e5))
+
+  for (z.name in c("beta", "kappa", "alpha")) {
+
+    nr <- dz[[z.name]]$inter.nr[steps.range]
+    death <- - dz[[z.name]]$inter.death[steps.range]
+    total <- nr + death
+
+    main <- switch(z.name,
+                   beta=expression(paste("Between-host selection on ", beta,
+                     " (x", 10^-5,")")),
+                   kappa=expression(paste("Between-host selection on ", kappa,
+                     " (x", 10^-5,")")),
+                   alpha=expression(paste("Between-host selection on ", alpha,
+                     " (x", 10^-5,")")))
+
+    ## plot BHS
+    mplot(steps.range, cbind(total, nr, death),
+          col=c("black", "blue", "red"),
+          main=main, xaxt='n', yaxt='n',
+          ylim=c(-4e-5, 4e-5), cex.main=2)
+    abline(h=0)
+    ## mark the time ticks properly
+    axis(1, at=xticks,
+         labels=sapply(xticks, function(x) sprintf("%d",x)))
+    ## draw the Y axis (major ticks)
+    axis(2, at=seq(-4e-5, 4e-5, 2e-5),
+         labels=seq(-4, 4, 2), cex.axis=2)
+  }
+
+  if (plot)
+    dev.off()
+
+  layout(matrix(1))
+  
+}
+
+
+
+## ===========================================================================
+## plot plasmid parameter variance
+price.plot.variance <- function(dz, plot=F ) {
+
+  if (plot)
+    pdf("variance.pdf", w=6, h=6)
 
   layout(matrix(1))
 
@@ -275,8 +366,8 @@ price.plot.fig6 <- function(dz, plot=F ) {
   decorate.log("y")
   abline(h=log10(3e-3), lty=2)
 
-  text(0, c(-1, -2.9), c("Between Hosts", "Within Hosts"),
-       cex=3, adj=c(0, 1))
+  text(10, -1, "Between Hosts", cex=2, adj=c(0, 1))
+  text(10, -3, "Within Hosts", cex=2, adj=c(0, 0))
 
   ## mark the time ticks properly
   xticks.at <- 10000 * seq(0, 100, 25)

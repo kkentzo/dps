@@ -466,8 +466,7 @@ dps.plot.price <- function( results, dz=NULL, window.size=0, steps.range=NA,
 
 ## =========================================================================
 ## plot the dynamics of price equation events components
-dps.plot.price.events <- function(results, dz,
-                                  events=c("nr", "death"),
+dps.plot.price.events <- function(dz, events=c("nr", "death"),
                                   z.names=c("beta", "kappa", "alpha"),
                                   steps.range=NA) {
 
@@ -476,38 +475,16 @@ dps.plot.price.events <- function(results, dz,
     steps.range <- 1:nrow(dz$beta)
   else
     steps.range <- steps.range[1]:steps.range[2]
-  
+
   level.names <- c("global", "inter", "intra")
-  l <- length(level.names)
-  z <- length(z.names)
-  layout(matrix(c(rep(1,z), 1+1:(z*l)), ncol=z, byrow=T))
-  
-  ## plot evolutionary dynamics of beta, kappa, alpha
-  dyn.mean <- Reduce(cbind,
-                     lapply(z.names,
-                            function(z.name)
-                            results$dynamics$global$M[[z.name]][steps.range]),
-                     init=NULL)
-  dyn.sd <- Reduce(cbind,
-                   lapply(z.names,
-                          function(z.name)
-                          sqrt(results$dynamics$global$V[[z.name]][steps.range])),
-                     init=NULL)
-  plot.with.range(dyn.mean, dyn.sd, x=steps.range,
-                  main="Plasmid Replication Parameters",
-                  col=c("blue", "red", "green"),
-                  xlab="Time", ylab="")
-  legend("topleft", c(expression(beta),
-                      expression(kappa),
-                      expression(alpha))[1:length(z.names)],
-         lwd=1, col=c("blue", "red", "green"))
+  layout(matrix(1:(3*length(z.names)), ncol=3, byrow=T))
 
   ## plot components of selection due to the specified events
-  for (level in level.names) {
-    for (z.name in z.names) {
+  for (z.name in z.names) {
+    for (level in level.names) {
       ## plot time series
       nr <- dz[[z.name]][[paste(level,"nr",sep=".")]][steps.range]
-      nd <- dz[[z.name]][[paste(level,"death",sep=".")]][steps.range]
+      nd <- - dz[[z.name]][[paste(level,"death",sep=".")]][steps.range]
       total <- nr + nd
       mplot(steps.range, cbind(total, nr, nd), xlab="Time",
             main=paste(z.name, level, sep=" "),
@@ -516,6 +493,43 @@ dps.plot.price.events <- function(results, dz,
       legend("bottomleft", c("total", "nr", "death"),
              lwd=1, col=c("black", "blue", "red"))
     }
+  }
+
+  layout(matrix(1))
+  
+}
+
+
+
+
+## =========================================================================
+## plot the dynamics of price equation events components
+dps.plot.price.events2 <- function(dz, events=c("nr", "death"),
+                                   z.names=c("beta", "kappa", "alpha"),
+                                   steps.range=NA) {
+
+  ## calculate steps.range
+  if (length(steps.range) != 2) 
+    steps.range <- 1:nrow(dz$beta)
+  else
+    steps.range <- steps.range[1]:steps.range[2]
+
+  layout(matrix(1:3, ncol=3, byrow=F))
+
+  ## plot components of selection due to the specified events
+  for (z.name in z.names) {
+    ## plot dynamics
+    ##mplot(steps.range, ma(results$dynamics$counters$rep[steps.range], 500))
+    ## plot BHS
+    nr <- dz[[z.name]]$inter.nr[steps.range]
+    nd <- - dz[[z.name]]$inter.death[steps.range]
+    total <- nr + nd
+    mplot(steps.range, cbind(nr, nd), xlab="Time",
+          main=sprintf("BHS on %s", z.name),
+          col=c("black", "blue", "red"))
+    abline(h=0)
+    legend("bottomleft", c("total", "nr", "death"),
+           lwd=1, col=c("black", "blue", "red"))
   }
 
   layout(matrix(1))
@@ -990,10 +1004,14 @@ dps.analyze <- function(results, window.size=1000) {
 
 
 
-dps.plot.histogram <- function( results, name="age" ) {
+dps.plot.histogram <- function( results, name="age", fpart=NULL ) {
 
   x <- results$histograms[[name]]$x
-  y <- colSums(results$histograms[[name]]$y)
+
+  if (is.null(fpart)) 
+    y <- colSums(results$histograms[[name]]$y)
+  else
+    y <- results$histograms[[name]]$y[fpart,]
 
   x <- x[y!=0]
   y <- y[y!=0]
@@ -1001,6 +1019,19 @@ dps.plot.histogram <- function( results, name="age" ) {
   plot(x, log10(y), t="b", xlab=name, ylab="Frequency", yaxt="n")
   decorate.log("y")
   
+  
+}
+
+
+
+dps.plot.cn.hists <- function(results) {
+
+  x <- 0.5 + results$histograms$cn$x
+  y <- t(results$histograms$cn$y)
+
+  mplot(log10(x[2:length(x)]), y[2:length(x),], col="black", xaxt='n')
+  decorate.log("x")
+  abline(v=log10(7))
   
 }
 
