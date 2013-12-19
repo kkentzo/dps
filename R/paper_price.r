@@ -162,13 +162,43 @@ price.plot.fig2 <- function(results, dz, steps.range=c(2e5, 3e5),
 
 
 
-
 ## ===========================================================================
-## plot the dynamics of tbiases
-price.plot.fig3 <- function(dz, plot=F) {
+## plot the decline of intra beta over time
+price.plot.fig3 <- function( dz, plot=F ) {
 
   if (plot)
     pdf("fig3.pdf", w=6, h=6)
+
+  intra.beta <- log10(dz$beta$intra)
+
+  rng <- range(intra.beta, na.rm=T)
+
+  plot(log10(dz$beta$intra), t="l", xlab="Evolutionary Time", ylab="",
+       main=expression(paste("Within-host Selection on ", beta)), col="blue",
+       xaxt='n', yaxt='n', ylim=c(floor(rng[1]), rng[2]))
+  decorate.log("y")
+
+  ## mark the time ticks properly
+  xticks.at <- 10000 * seq(0, 100, 25)
+  axis(1, at=xticks.at)
+
+  if (plot)
+    dev.off()
+
+}
+
+
+
+
+
+
+
+## ===========================================================================
+## plot the dynamics of tbiases
+price.plot.fig4 <- function(dz, plot=F) {
+
+  if (plot)
+    pdf("fig4.pdf", w=6, h=6)
 
   layout(matrix(1))
   mplot(Reduce(cbind,
@@ -193,39 +223,6 @@ price.plot.fig3 <- function(dz, plot=F) {
   
   
 }
-
-
-
-
-## ===========================================================================
-## plot the decline of intra beta over time
-price.plot.fig4 <- function( dz, plot=F ) {
-
-  if (plot)
-    pdf("fig4.pdf", w=6, h=6)
-
-  intra.beta <- log10(dz$beta$intra)
-
-  rng <- range(intra.beta, na.rm=T)
-
-  plot(log10(dz$beta$intra), t="l", xlab="Evolutionary Time", ylab="",
-       main=expression(paste("Within-host Selection on ", beta)), col="blue",
-       xaxt='n', yaxt='n', ylim=c(floor(rng[1]), rng[2]))
-  decorate.log("y")
-
-  ## mark the time ticks properly
-  xticks.at <- 10000 * seq(0, 100, 25)
-  axis(1, at=xticks.at)
-
-  if (plot)
-    dev.off()
-
-}
-
-
-
-
-
 
 
 
@@ -277,11 +274,11 @@ price.plot.fig6 <- function(results, plot=F ) {
   mplot(log10(x), y, main="Copy Number Distributions",
         xlab=expression(n), ylab=expression(paste("Frequency (x", 10^6, ")")),
         xaxt='n', yaxt='n',
-        col=redgreen(ncol(y)))
+        col=redblue(ncol(y)))
   decorate.log("x")
   ## draw the Y axis (major ticks)
-  axis(2, at=seq(0, 6e6, 1e6),
-       labels=seq(0, 6, 1))
+  axis(2, at=seq(0, 6e6, 2e6),
+       labels=seq(0, 6, 2))
   
   abline(v=log10(7), lty="dashed")
 
@@ -303,39 +300,37 @@ price.plot.fig7 <- function(dz, plot=F, steps.range=c(1,5e5)) {
     steps.range <- steps.range[1]:steps.range[2]
 
   if (plot)
-    pdf("fig6.pdf", w=10, h=6)
+    pdf("fig7.pdf", w=10, h=4)
 
   layout(matrix(1:3, ncol=3))
 
   rng <- range(steps.range)
-  xticks <- as.integer(seq(rng[1]-1, rng[2], 1e5))
+  xticks <- as.integer(seq(rng[1]-1, rng[2], 2.5e5))
 
   for (z.name in c("beta", "kappa", "alpha")) {
 
     nr <- dz[[z.name]]$inter.nr[steps.range]
     death <- - dz[[z.name]]$inter.death[steps.range]
     total <- nr + death
-
     main <- switch(z.name,
-                   beta=expression(paste("Between-host selection on ", beta,
-                     " (x", 10^-5,")")),
-                   kappa=expression(paste("Between-host selection on ", kappa,
-                     " (x", 10^-5,")")),
-                   alpha=expression(paste("Between-host selection on ", alpha,
-                     " (x", 10^-5,")")))
+                   beta=expression(paste("BHS on ", beta, "  (x", 10^-5,")")),
+                   kappa=expression(paste("BHS on ", kappa, "  (x", 10^-5,")")),
+                   alpha=expression(paste("BHS on ", alpha, "  (x", 10^-5,")")))
 
     ## plot BHS
     mplot(steps.range, cbind(total, nr, death),
           col=c("black", "blue", "red"),
           main=main, xaxt='n', yaxt='n',
-          ylim=c(-4e-5, 4e-5), cex.main=2)
+          xlab=if (z.name=="kappa") "Evolutionary Time" else "",
+          ylim=c(-4e-5, 4e-5), cex.main=2, cex.lab=1.5)
     abline(h=0)
     ## mark the time ticks properly
     axis(1, at=xticks,
-         labels=sapply(xticks, function(x) sprintf("%d",x)))
+         labels=sapply(xticks, function(x) sprintf("%d",x)),
+         cex.axis=1.5)
     ## draw the Y axis (major ticks)
     axis(2, at=seq(-4e-5, 4e-5, 2e-5),
-         labels=seq(-4, 4, 2), cex.axis=2)
+         labels=seq(-4, 4, 2), cex.axis=1.5)
   }
 
   if (plot)
