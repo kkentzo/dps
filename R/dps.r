@@ -261,6 +261,8 @@ dps.calc.price <- function(results, window.size=500, steps.range=NA,
   
   dz <- list(fitness=ma(results$dynamics$global$M$fitness[take.steps],
                  window.size=window.size),
+             host.growth=ma(results$dynamics$counters$div.all /
+                 results$dynamics$counters$n, window.size),
              window.size=window.size)
 
   ## returns a list with members: z.name, and if decompose: "nr", "ht", "death"
