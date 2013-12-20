@@ -2,7 +2,7 @@
 tryCatch(suppressWarnings(source('dps.r')),
          error=function(e) source('R/dps.r'))
 
-## === use the following files for results ===
+
 
 ## || NO-CONJ results with pconj=0 || <=== THIS IS USED IN THE PAPER
 ## for RESULTS.BKA use results.bka <- dps.load('/data/dps/bka/results.2.16.h5')
@@ -11,8 +11,14 @@ tryCatch(suppressWarnings(source('dps.r')),
 ## EPS plotting :
 ## setEPS(); postscript("fname.eps"); plot(); dev.off()
 
-## load the results to be used in the paper
-price.load.bka <- function(fname="/data/dps/bka/results.15.h5") dps.load(fname)
+
+## === use the following files for results ===
+
+## load the results object
+price.load.results <- function(fname="/data/dps/bka/results.h5") dps.load(fname)
+
+## load the DZ objec
+price.load.dz <- function(fname="/data/dps/bka/dz.xdr") dps.load.price(fname)
 
 
 ## ===========================================================================
@@ -233,15 +239,17 @@ price.plot.fig5 <- function(dz, plot=F ) {
   if (plot)
     pdf("fig5.pdf", w=6, h=6)
 
+  ## TODO!! ==> DZ is changed - take cov/var
+
   layout(matrix(1))
 
   ## plot plasmid rep rate
   mplot(Reduce(cbind,
                lapply(c("beta", "kappa", "alpha"),
-                      function(z.name) dz[[z.name]]$r),
+                      function(z.name) dz[[z.name]]$r$cov / dz[[z.name]]$r$var),
                init=NULL),
         main="Relatedness", xlab="Evolutionary Time",
-        xaxt='n', ylim=c(0.5, 1))
+        xaxt='n', ylim=c(0.6, 1))
 
   ## mark the time ticks properly
   xticks.at <- 10000 * seq(0, 100, 25)
@@ -255,14 +263,26 @@ price.plot.fig5 <- function(dz, plot=F ) {
 
 
 ## ===========================================================================
-## plot the copy number distributions over time
-price.plot.fig6 <- function(results, plot=F ) {
+## plot host growth and the copy number distributions over time
+price.plot.fig6 <- function(results, dz, plot=F ) {
 
   if (plot)
-    pdf("fig6.pdf", w=6, h=6)
+    pdf("fig6.pdf", w=10, h=5)
 
-  layout(matrix(1))
+  layout(matrix(1:2, ncol=2))
+
+  ## plot host growth
+  mplot(dz$host.growth, 
+        xlab="Evolutionary Time", ylab="",
+        main=expression("Host Division Rate"), xaxt='n', yaxt='n')
+  ## mark the time ticks properly
+  xticks.at <- 10000 * seq(0, 100, 25)
+  axis(1, at=xticks.at)
+  ## draw the Y axis
+  axis(2, at=seq(0.05, 0.06, 0.005))
   
+
+  ## plot copy number distributions
   x <- 0.5 + results$histograms$cn$x
   y <- t(results$histograms$cn$y)
 
@@ -271,9 +291,10 @@ price.plot.fig6 <- function(results, plot=F ) {
   ## exclude n=0 from plot
   y <- y[2:length(x),]
   x <- x[2:length(x)]
-  mplot(log10(x), y, main="Copy Number Distributions",
-        xlab=expression(n), ylab=expression(paste("Frequency (x", 10^6, ")")),
-        xaxt='n', yaxt='n',
+  mplot(log10(x), y,
+        main=expression(paste("Copy Number Frequencies (x", , 10^6, ")")),
+        xlab=expression(n), 
+        xaxt='n', yaxt='n', 
         col=redblue(ncol(y)))
   decorate.log("x")
   ## draw the Y axis (major ticks)

@@ -305,14 +305,18 @@ dps.calc.price <- function(results, window.size=500, steps.range=NA,
         r[[v.name]] <- v[[v.name]]
     ## Calculate total selection
     r$total <- r$global + r$tbias
-    ## Calculate relatedness
+    ## Calculate relatedness (separate components for cov and var)
     if (relatedness) {
-      r$r <- ma(results$dynamics$relatedness$oo$cov[[z.name]][take.steps] /
-                results$dynamics$relatedness$oo$var[[z.name]][take.steps],
-                window.size=window.size)
-      r$r.wg <- ma(results$dynamics$relatedness$wg$cov[[z.name]][take.steps] /
-                   results$dynamics$relatedness$wg$var[[z.name]][take.steps],
-                   window.size=window.size)
+      r$r <- data.frame(
+          cov=ma(results$dynamics$relatedness$oo$cov[[z.name]][take.steps],
+              window.size=window.size),
+          var=ma(results$dynamics$relatedness$oo$var[[z.name]][take.steps],
+              window.size=window.size))
+      r$r.wg <- data.frame(
+          cov=ma(results$dynamics$relatedness$wg$cov[[z.name]][take.steps],
+              window.size=window.size),
+          var=ma(results$dynamics$relatedness$wg$var[[z.name]][take.steps],
+              window.size=window.size))
     }
 
     ## return r
