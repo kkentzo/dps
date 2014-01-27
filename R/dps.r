@@ -6,7 +6,7 @@ suppressMessages(library(multicore))
 trySource <- function(path) {suppressWarnings(source(path)); cat("Sourcing", path, "\n");}
 
 ## insert contents of krutils.r
-tryCatch(trySource('krutils.r'),
+tryCatch(trySource('./krutils.r'),
          error=function(e) {
            tryCatch(trySource('R/krutils.r'),
                     error=function(e) cat("Unable to source krutils\n"))
@@ -1329,6 +1329,7 @@ dps.pp.experiment.parallel <- function( path, cores ) {
 
     results <- list(counters=list(), ## automatic
                     relatedness=list(), ## automatic
+                    drelatedness=list(), ## automatic
                     global=list(), ## automatic
                     inter=list(), ## automatic
                     intra=list(), ## automatic
@@ -1404,8 +1405,10 @@ dps.pp.experiment.parallel <- function( path, cores ) {
       }
 
       ## process RELATEDNESS
-      for (r.type in names(r$dynamics$relatedness)) 
+      for (r.type in names(r$dynamics$relatedness)) {
         for (name in names(r$dynamics$relatedness[[r.type]]$cov)) {
+          ## populate relatedness coefficients in
+          ## relatedness[[rtype]][[beta|kappa|alpha]]
           if (is.null(results$relatedness[[r.type]][[name]])) 
             results$relatedness[[r.type]][[name]] <- array(NA, runs)
           
@@ -1414,6 +1417,21 @@ dps.pp.experiment.parallel <- function( path, cores ) {
                  r$dynamics$relatedness[[r.type]]$var[[name]][seq.steps],
                  na.rm=T)
         }
+      }
+
+      ## process DRELATEDNESS (relatedness decomposed into cov and var)
+      for (r.type in names(r$dynamics$relatedness)) { ## ==> oo, wg
+        for (s.type in c("cov", "var")) { ## cov, var
+          for (name in names(r$dynamics$relatedness[[r.type]]$cov)) { ## ==> b,k,a
+            if (is.null(results$drelatedness[[r.type]][[s.type]][[name]])) 
+              results$drelatedness[[r.type]][[s.type]][[name]] <- array(NA, runs)
+
+            results$drelatedness[[r.type]][[s.type]][[name]][i.run] <-
+              mean(r$dynamics$relatedness[[r.type]][[s.type]][[name]][seq.steps],
+                   na.rm=T)
+          }
+        }
+      }
 
       ## process the rest
       for (level in c("global", "inter", "intra"))
@@ -1445,8 +1463,10 @@ dps.pp.experiment.parallel <- function( path, cores ) {
     }
 
     ## form aggregated results
-    results.agg <- list(M=list(counters=list(),relatedness=list(), custom=list()),
-                        S=list(counters=list(), relatedness=list(), custom=list()),
+    results.agg <- list(M=list(counters=list(),relatedness=list(),
+                            drelatedness=list(), custom=list()),
+                        S=list(counters=list(), relatedness=list(),
+                            drelatedness=list(), custom=list()),
                         pconj.values=pconj.values)
 
     ## aggregate the results into results.agg
@@ -1470,15 +1490,31 @@ dps.pp.experiment.parallel <- function( path, cores ) {
           }
           
           for (name in names(results[[level]][[r.type]])) {
-
             results.agg$M[[level]][[r.type]][[name]] <-
-              mean(results[[level]][[r.type]][[name]], na.rm=T)
-            results.agg$S[[level]][[r.type]][[name]] <-
-              sd(results[[level]][[r.type]][[name]], na.rm=T)
+                mean(results[[level]][[r.type]][[name]], na.rm=T)
+              results.agg$S[[level]][[r.type]][[name]] <-
+                sd(results[[level]][[r.type]][[name]], na.rm=T)
           }
         }
         
-      } else{
+      } else if (level == "drelatedness") {
+
+        for (r.type in names(results[[level]])) { ## ==> oo, wg
+          for (s.type in c("cov", "var")) { ## cov, var
+            if (is.null(results.agg$M[[level]][[r.type]][[s.type]])) {
+              results.agg$M[[level]][[r.type]][[s.type]] <- list()
+              results.agg$S[[level]][[r.type]][[s.type]] <- list()
+            }
+            
+            for (name in names(results[[level]][[r.type]][[s.type]])) { ## ==> b,k,a
+              results.agg$M[[level]][[r.type]][[s.type]][[name]] <-
+                mean(results[[level]][[r.type]][[s.type]][[name]], na.rm=T)
+              results.agg$S[[level]][[r.type]][[s.type]][[name]] <-
+                sd(results[[level]][[r.type]][[s.type]][[name]], na.rm=T)
+            }
+          }
+        }
+      } else {
 
         for (stat in names(results[[level]])) {
           if (is.null(results.agg$M[[level]][[stat]])) {
@@ -1566,6 +1602,21 @@ dps.pp.experiment.parallel <- function( path, cores ) {
                 c(results[["1"]]$S[[level]][[r.type]][[name]],
                   results[[as.character(i.pconj)]]$S[[level]][[r.type]][[name]])
             }
+          
+        } else if (level == "drelatedness") {
+
+          for (r.type in names(results[[level]])) { ## ==> oo, wg
+            for (s.type in c("cov", "var")) { ## cov, var
+              for (name in names(r$dynamics$relatedness[[r.type]]$cov)) { ## ==> b,k,a
+                results[["1"]]$M[[level]][[r.type]][[s.type]][[name]] <-
+                  c(results[["1"]]$M[[level]][[r.type]][[s.type]][[name]],
+                    results[[as.character(i.pconj)]]$M[[level]][[r.type]][[s.type]][[name]])
+                results[["1"]]$S[[level]][[r.type]][[s.type]][[name]] <-
+                  c(results[["1"]]$S[[level]][[r.type]][[s.type]][[name]],
+                    results[[as.character(i.pconj)]]$S[[level]][[r.type]][[s.type]][[name]])
+              }
+            }
+          }
           
         } else {
 

@@ -4,15 +4,12 @@ tryCatch(suppressWarnings(source('dps.r')),
 
 
 
-## || NO-CONJ results with pconj=0 || <=== THIS IS USED IN THE PAPER
-## for RESULTS.BKA use results.bka <- dps.load('/data/dps/bka/results.2.16.h5')
-## for DZ use load("/data/dps/bka/dz.2.16.xdr")
-
 ## EPS plotting :
 ## setEPS(); postscript("fname.eps"); plot(); dev.off()
 
-
+## ===========================================
 ## === use the following files for results ===
+## ===========================================
 
 ## load the results object
 price.load.results <- function(fname="/data/dps/bka/results.h5") dps.load(fname)
