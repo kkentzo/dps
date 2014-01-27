@@ -1581,6 +1581,7 @@ dps.pp.experiment.parallel <- function( path, cores ) {
                                        results[[as.character(i.pconj)]]$pconj.values)
       ## second, the LEVELS (counters, global, inter, intra, relatedness)
       for (level in names(results[["1"]]$M)) {
+        
         if (level == "counters" || level == "custom") {
           for (name in names(results[["1"]]$M[[level]])) {
             results[["1"]]$M[[level]][[name]] <-
@@ -1590,6 +1591,7 @@ dps.pp.experiment.parallel <- function( path, cores ) {
               c(results[["1"]]$S[[level]][[name]],
                 results[[as.character(i.pconj)]]$S[[level]][[name]])
           }
+
         } else if (level == "relatedness") {
 
           for (r.type in names(results[["1"]]$M[[level]]))
@@ -1605,9 +1607,9 @@ dps.pp.experiment.parallel <- function( path, cores ) {
           
         } else if (level == "drelatedness") {
 
-          for (r.type in names(results[[level]])) { ## ==> oo, wg
+          for (r.type in names(results[["1"]]$M[[level]])) { ## ==> oo, wg
             for (s.type in c("cov", "var")) { ## cov, var
-              for (name in names(r$dynamics$relatedness[[r.type]]$cov)) { ## ==> b,k,a
+              for (name in names(results[["1"]]$M[[level]][[r.type]]$cov)) { ## ==> b,k,a
                 results[["1"]]$M[[level]][[r.type]][[s.type]][[name]] <-
                   c(results[["1"]]$M[[level]][[r.type]][[s.type]][[name]],
                     results[[as.character(i.pconj)]]$M[[level]][[r.type]][[s.type]][[name]])
