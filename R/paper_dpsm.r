@@ -13,44 +13,11 @@ tryCatch(suppressWarnings(source('dps.r')), error=function(e) source('R/dps.r'))
 
 
 ## ===========================================================================
-## plots plasmid performance (rep, conj, seg loss)
-## for plotting use: pdf("fig1.pdf", width=8, height=3)
-plot.fig1 <- function(results.b, results.bka) {
-
-  layout(matrix(1:3, nrow=1))
-
-  mplot(cbind(results.b$pconj, results.bka$pconj),
-        cbind(results.b$M$custom$rep.cn, results.bka$M$custom$rep.cn),
-        main="Replication Rate", ylab="", xlab=expression(p[c]),
-        log.take="x")
-  legend("topleft", c("NO-CNC", "CNC"),
-         lwd=1, col=c("blue", "red"))
-  
-
-  mplot(cbind(results.b$pconj, results.bka$pconj),
-        ##cbind(results.b$M$global$M$ht, results.bka$M$global$M$ht),
-        cbind(results.b$M$custom$ht.cn, results.bka$M$custom$ht.cn),
-        main="Conjugation Rate", ylab="", xlab=expression(p[c]),
-        log.take="x")
-
-  mplot(cbind(results.b$pconj, results.bka$pconj),
-        cbind(results.b$M$custom$loss.cn, results.bka$M$custom$loss.cn),
-        main="Segregation Loss", xlab=expression(p[c]), ylab="",
-        log.take="xy", col=c("blue", "red"))
-  
-
-  layout(matrix(1))
-  
-}
-
-
-
-
-
-## ===========================================================================
 ## plots host performance (CN, growth, death)
-## for plotting use: pdf("fig2.pdf", width=8, height=3)
-plot.fig2 <- function(results.b, results.bka) {
+plot.fig1 <- function(results.b, results.bka, plot=F) {
+
+  if (plot)
+    pdf("fig1.pdf", width=8, height=3)
 
   layout(matrix(1:3, nrow=1))
 
@@ -73,6 +40,9 @@ plot.fig2 <- function(results.b, results.bka) {
         main="Host Death", xlab=expression(p[c]), ylab="",
         log.take="x", col=c("blue", "red"))
 
+  if (plot)
+    dev.off()
+
   layout(matrix(1))
   
 }
@@ -83,9 +53,53 @@ plot.fig2 <- function(results.b, results.bka) {
 
 
 ## ===========================================================================
+## plots plasmid performance (rep, conj, seg loss)
+plot.fig2 <- function(results.b, results.bka, plot=F) {
+
+  if (plot)
+    pdf("fig2.pdf", width=8, height=3)
+
+  layout(matrix(1:3, nrow=1))
+
+  mplot(cbind(results.b$pconj, results.bka$pconj),
+        cbind(results.b$M$custom$rep.cn, results.bka$M$custom$rep.cn),
+        main="Replication Rate", ylab="", xlab=expression(p[c]),
+        log.take="x")
+  legend("topleft", c("NO-CNC", "CNC"),
+         lwd=1, col=c("blue", "red"))
+  
+
+  mplot(cbind(results.b$pconj, results.bka$pconj),
+        ##cbind(results.b$M$global$M$ht, results.bka$M$global$M$ht),
+        cbind(results.b$M$custom$ht.cn, results.bka$M$custom$ht.cn),
+        main="Conjugation Rate", ylab="", xlab=expression(p[c]),
+        log.take="x")
+
+  mplot(cbind(results.b$pconj, results.bka$pconj),
+        cbind(results.b$M$custom$loss.cn, results.bka$M$custom$loss.cn),
+        main="Segregation Loss", xlab=expression(p[c]), ylab="",
+        log.take="xy", col=c("blue", "red"))
+
+  if (plot)
+    dev.off()
+
+  layout(matrix(1))
+  
+}
+
+
+
+
+
+
+
+
+## ===========================================================================
 ## plot the mean plasmid values and relatedness as a function of pconj
-## to plot use : pdf("fig3.pdf", width=8, height=6)
 plot.fig3 <- function(results.b, results.bka) {
+
+  if (plot)
+    pdf("fig3.pdf", width=8, height=6)
 
   layout(matrix(c(rep(1,3), 2:4), nrow=2, byrow=T))
 
@@ -133,6 +147,9 @@ plot.fig3 <- function(results.b, results.bka) {
     }
   }
 
+  if (plot)
+    dev.off()
+
   layout(matrix(1))
   
 
@@ -142,10 +159,9 @@ plot.fig3 <- function(results.b, results.bka) {
 ## ===========================================================================
 ## plots the averages of the Price equation components as a function of pconj
 ## in the CNC case
-## to plot use: pdf("fig4a.pdf", width=16, height=6)
-plot.fig4a <- function(results.bka, plot.pdf=F) {
+plot.fig4a <- function(results.bka, plot=F) {
 
-  if (plot.pdf)
+  if (plot)
     pdf("fig4a.pdf", w=16, h=6)
 
   layout(matrix(1:3, nrow=1, byrow=T))
@@ -223,10 +239,10 @@ plot.fig4a <- function(results.bka, plot.pdf=F) {
     }
   }
 
-  if (plot.pdf)
-    dev.off()
-
   layout(matrix(1))
+
+  if (plot)
+    dev.off()
 
 }
 
@@ -236,10 +252,9 @@ plot.fig4a <- function(results.bka, plot.pdf=F) {
 ## ===========================================================================
 ## plots the averages of the Price equation components as a function of pconj
 ## in the NO-CNC case
-## to plot use: pdf("fig4b.pdf", width=10, height=10)
-plot.fig4b <- function(results.b, plot.pdf=F) {
+plot.fig4b <- function(results.b, plot=F) {
 
-  if (plot.pdf)
+  if (plot)
     pdf("fig4b.pdf", w=16, h=6)
 
   layout(matrix(1:3, nrow=1, byrow=T))
@@ -288,7 +303,7 @@ plot.fig4b <- function(results.b, plot.pdf=F) {
   ## legend("topright", "Transmission Bias", ##inset=c(0, 0.35),
   ##        lwd=1, bty="n", cex=2, col="green")
 
-  if (plot.pdf)
+  if (plot)
     dev.off()
 
   layout(matrix(1))
@@ -301,8 +316,10 @@ plot.fig4b <- function(results.b, plot.pdf=F) {
 ## ==================================================================================
 ## plot the intra-cellular covariances of (beta,alpha) and (kappa, alpha)
 ## as a function of pconj
-## to plot use :  pdf("fig8.pdf", width=8, height=5)
 plot.fig5 <- function( results ) {
+
+  if (plot)
+    pdf("fig8.pdf", width=8, height=5)
 
   level = "intra"
 
@@ -337,7 +354,9 @@ plot.fig5 <- function( results ) {
   ##        c(expression(paste("<", E[i], "[cov"[j], "(", beta, ",", alpha, ")]>")),
   ##          expression(paste("<", E[i], "[cov"[j], "(", kappa, ",", alpha, ")]>"))),
   ##        lwd=1, col=c("blue", "red"))
-                      
+
+  if (plot)
+    dev.off()
         
 }
 

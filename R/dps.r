@@ -1357,7 +1357,7 @@ dps.pp.experiment.parallel <- function( path, cores ) {
 
       ## get a sequence of steps indexing the second half of the simulation
       steps <- nrow(r$dynamics$global$M)
-      seq.steps <- (ceiling(steps/5)):steps
+      seq.steps <- (ceiling(2*steps/5)):steps
 
       ## add value of gamma to results (as an atomic value)
       pconj.values <- r$settings$pconj
@@ -2135,6 +2135,59 @@ dps.pp.compare.relatedness <- function(results.b, results.bka) {
   layout(matrix(1))
   
 }
+
+
+
+
+
+
+## compares the cov and var components OO relatedness
+## between NO-CNC and CNC simulations
+dps.pp.compare.relatedness.components <- function(results.b, results.bka) {
+
+  var.names <- c("beta", "kappa", "alpha")
+
+  ## form data frames
+  cov.nocnc.mean <- data.frame(Reduce(cbind, results.b$M$drelatedness$oo$cov, c()))
+  var.nocnc.mean <- data.frame(Reduce(cbind, results.b$M$drelatedness$oo$var, c()))
+  
+  cov.cnc.mean <- data.frame(Reduce(cbind, results.bka$M$drelatedness$oo$cov, c()))
+  var.cnc.mean <- data.frame(Reduce(cbind, results.bka$M$drelatedness$oo$var, c()))
+
+  ## rename columns
+  names(cov.nocnc.mean) <- var.names
+  names(var.nocnc.mean) <- var.names
+  names(cov.cnc.mean) <- var.names
+  names(var.cnc.mean) <- var.names
+
+  layout(matrix(1:3, nrow=1))
+
+  for (var.name in var.names) {
+
+    mplot(results.b$pconj,
+          cbind(cov.nocnc.mean[[var.name]], cov.cnc.mean[[var.name]],
+                var.nocnc.mean[[var.name]], var.cnc.mean[[var.name]]),
+          xlab=expression(p[c]), ylab="", type="l", ltype=c(1,1,2,2),
+          log.take="xy", main=sprintf("Relatedness (%s)", var.name),
+          col=c("blue", "red", "blue", "red"))
+    ## mplot(cbind(var.nocnc.mean[[var.name]], var.cnc.mean[[var.name]]),
+    ##       cbind(cov.nocnc.mean[[var.name]], cov.cnc.mean[[var.name]]),
+    ##       log.take="xy", main=sprintf("Relatedness (%s)", var.name),
+    ##       xlab="var", ylab="cov", col=c("blue", "red"))
+
+    if (var.name == "beta") {
+      legend("left", c("NO-CNC", "CNC"),
+             lwd=1, col=c("blue", "red"))
+      legend("right", c("cov", "var"),
+             lwd=1, lty=c(1,2), col="black")
+    }
+  }
+
+  layout(matrix(1))
+  
+}
+
+
 
 
 
