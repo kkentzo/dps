@@ -84,6 +84,9 @@ void pool_remove_profile(pool_t *pool, void *profile);
 // ** the profile is added to the pool if it's not there already **
 void pool_change_profile_count(pool_t *pool, void *profile, int step);
 
+// return the profile that remains in the pool
+// if there are more than one profiles (or none) returns NULL
+void *pool_get_last(pool_t *pool);
 
 // return the CN of a profile
 int pool_get_profile_cn(pool_t *pool, void *profile);

@@ -161,6 +161,9 @@ void run(params_t *params) {
     // is competition over??
     if (params->compete && params->pool->size == 1) {
       printf("step %d | Competition is over\n", params->step);
+      profile_t *winner = pool_get_last(params->pool);
+      printf("Winner : b=%.3f | k=%.3f | a=%.3f\n", 
+	     winner->beta, winner->kappa, winner->alpha);
       global_abort = TRUE;
     }
 
@@ -453,8 +456,8 @@ void load_population_from_file(params_t *params) {
 
       // for each plasmid in the cell
       for (j=0; j<vtokens->len; j++) {
-
 	qtokens = g_string_tokenize(g_ptr_array_index(vtokens, j));
+	assert(qtokens);
 	// get profile key
 	key = g_ptr_array_index(qtokens, 0);
 	cn = atoi(((GString *)g_ptr_array_index(qtokens, 1))->str);

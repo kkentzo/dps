@@ -180,6 +180,28 @@ void pool_change_profile_count(pool_t *pool, void *profile, int step) {
 
 
 
+gboolean return_true_and_store_key(gpointer key, gpointer val, gpointer user_data) {
+  gpointer *p_key = (gpointer *)user_data;
+  *p_key = key;
+  return TRUE;
+}
+
+
+// returns a pointer to the only profile that remains in the pool
+// if there are more than one profiles (or none) returns NULL
+void *pool_get_last(pool_t *pool) {
+
+  gpointer key=NULL;
+
+  if (pool->size == 1) 
+    g_hash_table_find(pool->profiles, return_true_and_store_key, &key);
+
+  return key;
+
+}
+
+
+
 
 // return the CN of a profile
 int pool_get_profile_cn(pool_t *pool, void *profile) {
