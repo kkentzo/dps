@@ -1357,7 +1357,7 @@ dps.pp.experiment.parallel <- function( path, cores ) {
 
       ## get a sequence of steps indexing the second half of the simulation
       steps <- nrow(r$dynamics$global$M)
-      seq.steps <- (ceiling(2*steps/5)):steps
+      seq.steps <- (ceiling(steps/5)):steps
 
       ## add value of gamma to results (as an atomic value)
       pconj.values <- r$settings$pconj

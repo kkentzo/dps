@@ -4,8 +4,8 @@ tryCatch(suppressWarnings(source('dps.r')), error=function(e) source('R/dps.r'))
 ## === use the following files for results ===
 
 ## || results for varying pconj ||
-## for RESULTS.B use results <- dps.pp.load('/data/dpsm/htg.beta/results.xdr')
-## for RESULTS.BKA use results <- dps.pp.load('/data/dpsm/htg/results.xdr')
+## for RESULTS.B use results.b <- dps.pp.load('/data/dpsm/htg.beta/results.xdr')
+## for RESULTS.BKA use results.bka <- dps.pp.load('/data/dpsm/htg/results.xdr')
 
 
 ## EPS plotting :
@@ -21,22 +21,30 @@ plot.fig1 <- function(results.b, results.bka, plot=F) {
 
   layout(matrix(1:3, nrow=1))
 
-  mplot(cbind(results.b$pconj, results.bka$pconj),
-        cbind(results.b$M$custom$cn, results.bka$M$custom$cn),
+  x <- cbind(results.b$pconj, results.bka$pconj)
+
+  ## find peak of the NO-CNC growth curve
+  pconj.opt.idx <- which.max(results.b$M$custom$div.inf -
+                           results.b$M$custom$death)
+  ## find corresponding pconj value
+  pconj.opt <- results.b$pconj[pconj.opt.idx]
+
+  mplot(x, cbind(results.b$M$custom$cn, results.bka$M$custom$cn),
+        ##cbind(results.b$M$inter$M$cn, results.bka$M$inter$M$cn),
         main="Host Copy Number", xlab=expression(p[c]), ylab="",
         log.take="x", col=c("blue", "red"))
+  ##abline(v=log10(pconj.opt), h=results.b$M$custom$cn[pconj.opt.idx])
   legend("topleft", c("NO-CNC", "CNC"),
          lwd=1, col=c("blue", "red"))
-  
-  mplot(cbind(results.b$pconj, results.bka$pconj),
-        cbind(results.b$M$custom$div.inf - results.b$M$custom$death,
-              results.bka$M$custom$div.inf - results.bka$M$custom$death),
+
+  mplot(x, cbind(results.b$M$custom$div.inf - results.b$M$custom$death,
+                 results.bka$M$custom$div.inf - results.bka$M$custom$death),
         main="Host Growth", xlab=expression(p[c]), ylab="",
         log.take="x", col=c("blue", "red"))
+  ##abline(v=log10(pconj.opt))
 
-  mplot(cbind(results.b$pconj, results.bka$pconj),
-        cbind(results.b$M$custom$death,
-              results.bka$M$custom$death),
+  mplot(x, cbind(results.b$M$custom$death,
+                 results.bka$M$custom$death),
         main="Host Death", xlab=expression(p[c]), ylab="",
         log.take="x", col=c("blue", "red"))
 
@@ -96,7 +104,7 @@ plot.fig2 <- function(results.b, results.bka, plot=F) {
 
 ## ===========================================================================
 ## plot the mean plasmid values and relatedness as a function of pconj
-plot.fig3 <- function(results.b, results.bka) {
+plot.fig3 <- function(results.b, results.bka, plot=F) {
 
   if (plot)
     pdf("fig3.pdf", width=8, height=6)
