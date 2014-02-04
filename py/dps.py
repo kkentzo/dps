@@ -215,6 +215,33 @@ def construct_population(fname_out, wt_tuple, mut_tuple, n=1000, r_wt=7, r_mut=0
 
 
 
+# BEWARE of corrupted hdf output files - run script on them
+# before deploying to cluster!!
+def generate_populations(wt_tuple=(0.4, 0.9, 0.9),
+                         kappa_values=NP.arange(0.85, 0.95, 0.01),
+                         alpha_values=NP.arange(0.85, 0.95, 0.01),
+                         r_wt=7, r_mut=0.01,
+                         path="populations",
+                         only=[]):
+
+    # if PATH does not exist -- create it
+    if not os.path.exists(path):
+        os.makedirs(path)
+
+    for i, kappa in enumerate(kappa_values):
+        for j, alpha in enumerate(alpha_values):
+            fname = os.path.join(path, "population.%d.%d.h5" % (i,j))
+            if len(only) > 0 and (i,j) not in only:
+                continue
+            print "Creating %s" % fname
+            construct_population(fname, wt_tuple, (wt_tuple[0], kappa, alpha),
+                                 r_wt=r_wt, r_mut=r_mut)
+                                 
+
+
+# === process the COMP results and draw a contour plot with the results ===
+
+
 # ===================================================================
 #                        AD-HOC FUNCTIONS
 # ===================================================================
