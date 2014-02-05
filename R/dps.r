@@ -1817,182 +1817,6 @@ dps.pp.plot.price.components <- function(results, name) {
 
 
 
-
-## ==================================================================
-## ==================================================================
-##                             CREATE CLUSTER SCRIPTS
-## ==================================================================
-## ==================================================================
-
-
-## Generates a script for the `sbatch` cluster command
-## the LABEL should also be a directory in /home/kkentzo/
-## using an sprintf command to substitute the value which will be determined
-## according to the contents of LOAD.POP.NAMES
-## `...` contains arguments to dsps:
-##        use . instead of _ (e.g. ht.model) and it will converted automatically to _
-
-## this is a generic function --
-## see dps.create.experiment.script() below for more specific experiments
-dps.create.cluster.script <- function(label="htg", fname=NA, cores=100, runs=10,
-                                      pconj.values=seq(0.02, 0.15, length.out=50),
-                                      ...) {
-
-  ## adjust number of cores??
-  total.no.of.jobs <- length(pconj.values) * runs
-  if (total.no.of.jobs < cores)
-    cores <- total.no.of.jobs
-  
-
-  ## start with header
-  contents <- paste("#!/bin/sh\n",
-                    sprintf("#SBATCH --job-name=%s", toupper(label)),
-                    sprintf("#SBATCH --output=%s.out", label),
-                    sprintf("#SBATCH --error=%s.err", label),
-                    sprintf("#SBATCH --ntasks=%d", cores),
-                    "\ndate\n\n", sep="\n")
-
-  dps.path <- "LD_LIBRARY_PATH=/home/kkentzo/local/lib /home/kkentzo/Projects/programs/dps"
-
-
-  ## construct extra arguments string
-  args.list <- list(...)
-
-  ## convert steps string from %e to %d format
-  if (length(args.list) > 0 && ! is.na(args.list$steps)) {
-    args.list$steps <- sprintf("%d", args.list$steps)
-  }
-
-  ## assemble all arguments in one string using the [--arg.name arg.value] format
-  args.string <- paste(lapply(names(args.list),
-                              function (arg.name) {
-                                sprintf("--%s %s", paste(strsplit(arg.name, "\\.")[[1]],
-                                                         collapse="_"),
-                                        args.list[[arg.name]])
-                              }),
-                       collapse=" ")
-
-  ## create commands
-  job.id <- 0
-  wait.inserted <- F
-  
-  for (i.pconj in 0:(length(pconj.values)-1))
-    for (i.run in 0:(runs-1)) {
-      contents <- c(contents, paste(dps.path,
-                                    args.string,
-                                    sprintf("--pconj %.4e %s",
-                                            pconj.values[i.pconj+1],
-                                            sprintf("/home/kkentzo/%s/results.%d.%d.h5 &\n",
-                                                    label, i.pconj, i.run)),
-                                    sep=" "))
-
-      job.id <- job.id + 1
-
-      ## insert a wait??
-      if (job.id %% cores == 0) {
-        contents <- c(contents, "wait\n")
-        wait.inserted <- T
-      } else {
-        wait.inserted <- F
-      }
-    }
-
-  ## output number of jobs
-  print(sprintf("Created %d jobs", job.id))
-
-  ## write footer
-  if (wait.inserted)
-    contents <- c(contents, "\ndate\n")
-  else
-    contents <- c(contents, "wait\n\ndate\n")
-
-  ## write contents to file
-  if (is.na(fname))
-    fname <- paste(label, "sh", sep=".")
-
-  write(contents, fname, sep="\n")
-  
-}
-
-
-
-
-
-
-## create the ht.global experiment
-dps.create.experiment.script <- function(fname="htg.sh") {
-
-  dps.create.cluster.script(label="htg", fname=fname, cores=200, runs=100,
-                            ## == use these values for the extended simulations ==
-                            ## pconj.values=c(10 ^ seq(-4, -1, length.out=30),
-                            ##   seq(0.2, 0.5, 0.1)),
-                            pconj.values=10 ^ seq(-4, -1, length.out=30),
-                            beta=0.4, kappa=1, alpha=1, mu=5e-3,
-                            mutate="bka", steps=250000, fparts=20)
-  
-}
-
-
-
-
-## create a script pp.sh in the CWD that will post-process cluster results
-## place it to the cluster directory that contains the results and
-## pass its name to the sbatch command
-dps.create.cluster.pp.script <- function( cores ) {
-
-  contents <- paste("#!/bin/sh\n",
-                    "#SBATCH --job-name=PP",
-                    "#SBATCH --output=pp.out",
-                    "#SBATCH --error=pp.err",
-                    sprintf("#SBATCH --ntasks=%d\n", cores),
-                    "date\n",
-                    paste("LD_LIBRARY_PATH=/home/kkentzo/local/lib Rscript",
-                          sprintf("/home/kkentzo/Projects/programs/dps.r . %d", cores)),
-                    "\nwait\n\ndate\n",
-                    sep="\n")
-
-
-  write(contents, "pp.sh")
-  
-}
-
-
-
-
-
-
-dps.create.cluster.plot.script <- function( n.pconj, n.runs ) {
-
-  cores <- n.pconj * n.runs
-  cmd <- paste("LD_LIBRARY_PATH=/home/kkentzo/local/lib",
-               "Rscript",
-               "/home/kkentzo/Projects/programs/dps.r plot")
-
-  contents <- paste("#!/bin/sh\n",
-                    "#SBATCH --job-name=BK.PLOT",
-                    "#SBATCH --output=plot.out",
-                    "#SBATCH --error=plot.err",
-                    sprintf("#SBATCH --ntasks=%d\n", cores),
-                    "date\n",
-                    sep="\n")
-  
-  for (i.pconj in seq(0,n.pconj-1))
-    for (i.run in seq(0,n.runs-1))
-      contents <- paste(contents, sprintf("%s results.%d.%d.h5 figures 1 &\n",
-                                          cmd, i.pconj, i.run),
-                        sep="\n")
-
-  contents <- paste(contents, "\nwait\n\ndate\n", sep="\n")
-
-  ##print(contents)
-
-  write(contents, "plot.new.sh")
-
-  
-}
-
-
-
 ## ==================================================================
 ## ==================================================================
 ##                 POST-PROCESS COMP EXPERIMENTS
@@ -2001,21 +1825,25 @@ dps.create.cluster.plot.script <- function( n.pconj, n.runs ) {
 
 ## post-process the results of the comp experiment in PATH
 ## and save them in $PATH/results.xdr
-dps.pp.comp <- function(path) {
+dps.pp.comp <- function(path, cores=1) {
 
   ## gather all results files
   fnames <- Sys.glob(file.path(path, "results.[0-9]*.h5"))
+  ## read in value of pconj
+  r <- dps.load(fnames[[1]])
+  pconj <- r$settings$pconj
+  rm(r)
   ## count the the number of kappa, alpha and runs values
   len.kappa <- 0
   len.alpha <- 0
   runs <- 0
   for (fname in fnames) {
-    ## extract tokens values
-    tokens <- strsplit(fname, "\\.")[[1]]
-    ## tokens[1] is "comp/results"
-    k <- as.numeric(tokens[2])
-    a <- as.numeric(tokens[3])
-    r <- as.numeric(tokens[4])
+    ## extract numerical tokens 
+    tokens1 <- strsplit(fname, "results\\.")[[1]]
+    tokens <- strsplit(tokens1[length(tokens1)], "\\.")[[1]]
+    k <- as.numeric(tokens[1])
+    a <- as.numeric(tokens[2])
+    r <- as.numeric(tokens[3])
     if (a == 0 && r == 0)
       len.kappa <- len.kappa + 1
     if (k == 0 && r == 0)
@@ -2025,57 +1853,74 @@ dps.pp.comp <- function(path) {
   }
 
   cat("KAPPA=", len.kappa, "\nALPHA=", len.alpha,
-      "\nRUNS=", runs, "\n\n")
+      "\nRUNS=", runs, "\npconj=", pconj, "\n\n")
 
-  ## these are mutant values
-  kappa <- rep(NA, len.kappa)
-  alpha <- rep(NA, len.alpha)
-  mut.wins <- matrix(rep(0, len.kappa*len.alpha), nrow=len.kappa)
-  both.exist <- matrix(rep(0, len.kappa*len.alpha), nrow=len.kappa)
-  steps <- matrix(rep(0, len.kappa*len.alpha), nrow=len.kappa)
-
-  ## OK, now start reading in the results
-  for (i in seq(len.kappa)) {
-    for (j in seq(len.alpha)) {
-      for (k in seq(runs)) {
-        ## open results
-        r <- dps.load(file.path(path, sprintf("results.%d.%d.%d.h5",
-                                              i-1, j-1, k-1)))
-        ## record pconj
-        if (i==1 && j==1 && k==1)
-          pconj <- r$settings$pconj
-        ## store values of beta and kappa
-        if (k==1) {
-          kappa[i] <- r$competition$contenders$B$kappa
-          alpha[j] <- r$competition$contenders$B$alpha
-        }
-        ## figure out (and store) number of steps
-        last.step <- nrow(r$competition$frequencies)
-        steps[i,j] <- steps[i,j] + last.step
-        ## does mutant win??
-        if (r$competition$frequencies$A[last.step] == 0 &&
-            r$competition$frequencies$B[last.step] > 0)
-          mut.wins[i,j] <- mut.wins[i,j] + 1
-        ## do both exist?
-        if (r$competition$frequencies$A[last.step] > 0 &&
-            r$competition$frequencies$B[last.step] > 0)
-          both.exist[i,j] <- both.exist[i,j] + 1
-        rm(r)
+  ## process all runs for the specific combination
+  ## of (i.kappa, i.alpha) <-- these are 1-based indices
+  process.kappa.alpha <- function( i.kappa, i.alpha ) {
+    result <- list(mut.wins=rep(0,runs),
+                   both.exist=rep(0,runs),
+                   steps=rep(0,runs))
+    for (i.run in seq(runs)) {
+      ## load file
+      r <- dps.load(file.path(path, sprintf("results.%d.%d.%d.h5",
+                                            i.kappa-1, i.alpha-1, i.run-1)))
+      ## record values of kappa and alpha
+      if (i.run == 1) {
+        kappa <- r$competition$contenders$B$kappa
+        alpha <- r$competition$contenders$B$alpha
       }
+      ## figure out (and store) number of steps
+      result$steps[i.run] <- nrow(r$competition$frequencies)
+      ## does mutant win??
+      if (r$competition$frequencies$A[result$steps[i.run]] == 0 &&
+          r$competition$frequencies$B[result$steps[i.run]] > 0)
+        result$mut.wins[i.run] <- 1
+      ## do both exist?
+      if (r$competition$frequencies$A[result$steps[i.run]] > 0 &&
+          r$competition$frequencies$B[result$steps[i.run]] > 0)
+        result$both.exist[i.run] <- 1
+      rm(r)
     }
+    ## calculate means and return results
+    c(lapply(result, mean),
+      i.kappa=i.kappa, i.alpha=i.alpha,
+      kappa=kappa, alpha=alpha)
   }
 
-  ## form results
-  results <- list(kappa.values=kappa,
-                  alpha.values=alpha,
+
+  ## formulate the list of jobs to be calculated
+  jobs <- list()
+  ctr <- 1
+  for (i in seq(len.kappa)) {
+    for (j in seq(len.alpha)) {
+      jobs[[ctr]] <- list(i.kappa=i, i.alpha=j)
+      ctr <- ctr + 1
+    }
+  }
+  ## schedule the jobs in parallel
+  job.results <- mclapply(jobs,
+                          function(job) process.kappa.alpha(job$i.kappa,
+                                                            job$i.alpha),
+                          mc.cores=cores)
+
+  ## aggregate results
+  results <- list(pconj=pconj,
                   runs=runs,
-                  mut.wins=mut.wins / runs,
-                  both.exist=both.exist / runs,
-                  steps=steps / runs,
-                  pconj=pconj)
+                  kappa.values=rep(NA, len.kappa),
+                  alpha.values=rep(NA, len.alpha),
+                  mut.wins=matrix(NA, nrow=len.kappa, ncol=len.alpha),
+                  both.exist=matrix(NA, nrow=len.kappa, ncol=len.alpha),
+                  steps=matrix(NA, nrow=len.kappa, ncol=len.alpha))
+  for (r in job.results) {
+    results$kappa.values[r$i.kappa] <- r$kappa
+    results$alpha.values[r$i.alpha] <- r$alpha
+    results$mut.wins[r$i.kappa,r$i.alpha] <- r$mut.wins
+    results$both.exist[r$i.kappa,r$i.alpha] <- r$both.exist
+    results$steps[r$i.kappa,r$i.alpha] <- r$steps
+  }
 
   save(results, file=file.path(path, "results.xdr"), compress=T)
-  
 }
 
 
@@ -2356,7 +2201,11 @@ process.relatedness.adhoc <- function(path="relatedness") {
 ## OPTIONS
 ## use:
 ##        Rscript dps.r PATH CORES
-## to post-process the results of an experiment in PATH and produce results.xdr
+## to post-process the results of an experiment in PATH
+## and produce $PATH/results.xdr
+##        Rscript dps.r comp PATH CORES
+## to post-process the results of a COMP experiment in PATH
+## and produce PATH/results.xdr
 ##        Rscript dps.r plot RESULTS_PATH PNG_PATH CORES
 ## runs dps.analyze for all h5 files in RESULTS_PATH and saves the generated
 ## png files in PNG_PATH
@@ -2370,7 +2219,8 @@ idx.args <- grep("--args", all.options) + 1
 if (length(idx.args) > 0) {
 
   ## discover the directory of `this` script
-  script.name <- sub("--file=", "", all.options[grep("--file=", all.options)])
+  script.name <- sub("--file=", "",
+                     all.options[grep("--file=", all.options)])
   this.path <- dirname(script.name)
   ## try to source krutils
   trySource(file.path(this.path, "krutils.r"))
@@ -2382,6 +2232,8 @@ if (length(idx.args) > 0) {
     ## post-process the results
     dps.pp.experiment.parallel(options[1], as.numeric(options[2]))
 
+  } else if (length(options) == 3 && options[1] == "comp") {
+    dps.pp.comp(options[2], as.numeric(options[3]))
   } else if (length(options) == 4 && options[1] == "plot") {
 
     ## option[2] is the path to the h5 files [or FNAME for the serial version of plot.all()]
