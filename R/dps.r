@@ -17,9 +17,9 @@ tryCatch(trySource('./krutils.r'),
 
 
 
-## ============================================================================
-##                     LOAD/SAVE/PROCESS HDF FILES
-## ============================================================================
+## =================================================================
+##                 LOAD/SAVE/PROCESS HDF FILES
+## =================================================================
 
 
 
@@ -38,7 +38,7 @@ dps.load <- function( fname ) {
 
 
 
-## ============================================================================
+## =================================================================
 ## save the results to file FNAME
 dps.save <- function( results, fname ) {
 
@@ -53,7 +53,7 @@ dps.save <- function( results, fname ) {
 
 
 
-## ============================================================================
+## =================================================================
 ## return a single data object containing the aggregate of all
 ## h5 files in the directory PATH
 dps.aggregate <- function( path ) {
@@ -111,13 +111,13 @@ dps.aggregate <- function( path ) {
 
 
 
-## ============================================================================
+## =================================================================
 ##                     PLOT RESULTS (DYNAMICS/HISTS)
-## ============================================================================
+## =================================================================
 
 
 
-## ======================================================================
+## =================================================================
 ## calculates and returns the correlation coefficient of the pair
 ## of variables specified by NAMES
 ## DYNAMICS should be either the global, inter or intra data frames
@@ -225,7 +225,7 @@ dps.calc.association <- function( dynamics, names, norm.by="xy", plot=F, steps.r
 }
 
 
-## ==========================================================================
+## =================================================================
 ## loads and returns the saved dz object calculated by dps.calc.price()
 dps.load.price <- function(fname) {
 
@@ -245,7 +245,7 @@ dps.save.price <- function(dz, fname) {
 
 
 
-## ==========================================================================
+## =================================================================
 ## calculates and returns the 3 components of the price equation
 ## for beta, kappa and alpha (uses 3 cores to do that in parallel)
 ## STEPS.RANGE is a 2-tuple
@@ -927,7 +927,7 @@ dps.plot.relatedness <- function( results, dz=NULL, window.size=0,
 
 
 
-## ====================================================================================
+## =================================================================
 ## plot some basic features of the supplied RESULTS
 dps.plot.dynamics <- function( results ) {
 
@@ -951,7 +951,7 @@ dps.plot.dynamics <- function( results ) {
 
 
 
-## ============================================================================
+## ==================================================================
 ## plot an overview of RESULTS
 dps.analyze <- function(results, window.size=1000) {
 
@@ -1046,7 +1046,7 @@ dps.plot.cn.hists <- function(results) {
 
 
 
-## ============================================================================
+## ==================================================================
 ## CMD LINE FUNCTION : calls dps.analyze() and dps.plot.price() for all files in H5.PATH and
 ## saves the generated png files in PNG.PATH
 ## **multicore function : specify CORES **
@@ -1107,7 +1107,7 @@ dps.plot.all.parallel <- function( h5.path, png.path, cores ) {
     
   }
 
-  ## =====================================================================================
+  ## ================================================================
   ## run the plotting in parallel
   pvec(fnames, plot.results, mc.cores=cores)
 
@@ -1119,7 +1119,7 @@ dps.plot.all.parallel <- function( h5.path, png.path, cores ) {
 
 
 
-## ============================================================================
+## ==================================================================
 ## CMD LINE FUNCTION : calls dps.analyze() and dps.plot.price() for
 ## the results (h5) file specified as FNAME
 ## saves the generated png (and xdr) files in PNG.PATH
@@ -1169,7 +1169,7 @@ dps.plot.all.single <- function( fname, png.path, cores ) {
 
 
 
-## ============================================================================
+## ==================================================================
 ## CMD LINE FUNCTION : called from the command line
 ## if CORES > 1, it calls dps.plot.all.parallel()
 ## otherwise, it calls dps.plot.all.single()
@@ -1185,7 +1185,7 @@ dps.plot.all <- function( h5.path, png.path, cores ) {
 
 
 
-## ============================================================================
+## ==================================================================
 ## plots the joint histogram of the requested pair
 dps.plot.joint.dist <- function( results, pair="bk", fparts=NA, lv=15 ) {
 
@@ -1240,11 +1240,11 @@ dps.plot.joint.dist <- function( results, pair="bk", fparts=NA, lv=15 ) {
 
 
 
-### ===================================================================================
-### ===================================================================================
+### =================================================================
+### =================================================================
 ###                      CLUSTER EXPERIMENTS
-### ===================================================================================
-### ===================================================================================
+### =================================================================
+### =================================================================
 
 
 
@@ -1265,7 +1265,7 @@ dps.pp.load <- function( fname ) {
 
 
 
-## =====================================================================================
+## ==================================================================
 ## CMD LINE FUNCTION :: post-process the results of the HT.GLOBAL experiment concurrently
 ## pass NA to cores and it will just print the dimensionality (pconj,runs) and then exit
 dps.pp.experiment.parallel <- function( path, cores ) {
@@ -1320,7 +1320,7 @@ dps.pp.experiment.parallel <- function( path, cores ) {
 
 
 
-  ## =====================================================================================
+  ## ================================================================
   ## process the results for the specified index of pconj (for all runs)
   ## return a RESULTS list
   process.pconj <- function( i.pconj ) {
@@ -1539,16 +1539,16 @@ dps.pp.experiment.parallel <- function( path, cores ) {
 
 
 
-  ## =====================================================================================
+  ## ================================================================
   ## AD-HOC TESTING (COMMENT OUT WHEN DONE)
   ## len.pconj <- 1
   ## results <- process.pconj( 1 )
   ## return(results)
-  ## =====================================================================================
+  ## ================================================================
 
   
   
-  ## =====================================================================================
+  ## ================================================================
   ## split the i_pconj.* processing according to the cores we have
   indices <- cut(1:len.pconj, breaks=seq(0, len.pconj+cores, by=cores),
                  include.lowest=T, labels=F)
@@ -1656,7 +1656,7 @@ dps.pp.experiment.parallel <- function( path, cores ) {
 
 
 
-## ======================================================================================
+## ==================================================================
 ## plot a variable from the PP results, specified by TYPE, LEVEL and NAME
 ## use repeatedly on the same figure using ADD=TRUE
 ## if PLOT.ERRORS, then error bars with standard error of the mean will be plotted 
@@ -1818,11 +1818,11 @@ dps.pp.plot.price.components <- function(results, name) {
 
 
 
-## ======================================================================================
-## ======================================================================================
+## ==================================================================
+## ==================================================================
 ##                             CREATE CLUSTER SCRIPTS
-## ======================================================================================
-## ======================================================================================
+## ==================================================================
+## ==================================================================
 
 
 ## Generates a script for the `sbatch` cluster command
@@ -1993,11 +1993,103 @@ dps.create.cluster.plot.script <- function( n.pconj, n.runs ) {
 
 
 
-## ==================================================================================
-## ==================================================================================
-##                              AD-HOC FUNCTIONS
-## ==================================================================================
-## ==================================================================================
+## ==================================================================
+## ==================================================================
+##                 POST-PROCESS COMP EXPERIMENTS
+## ==================================================================
+## ==================================================================
+
+## post-process the results of the comp experiment in PATH
+## and save them in $PATH/results.xdr
+dps.pp.comp <- function(path) {
+
+  ## gather all results files
+  fnames <- Sys.glob(file.path(path, "results.[0-9]*.h5"))
+  ## count the the number of kappa, alpha and runs values
+  len.kappa <- 0
+  len.alpha <- 0
+  runs <- 0
+  for (fname in fnames) {
+    ## extract tokens values
+    tokens <- strsplit(fname, "\\.")[[1]]
+    ## tokens[1] is "comp/results"
+    k <- as.numeric(tokens[2])
+    a <- as.numeric(tokens[3])
+    r <- as.numeric(tokens[4])
+    if (a == 0 && r == 0)
+      len.kappa <- len.kappa + 1
+    if (k == 0 && r == 0)
+      len.alpha <- len.alpha + 1
+    if (k == 0 && a == 0)
+      runs <- runs + 1
+  }
+
+  cat("KAPPA=", len.kappa, "\nALPHA=", len.alpha,
+      "\nRUNS=", runs, "\n\n")
+
+  ## these are mutant values
+  kappa <- rep(NA, len.kappa)
+  alpha <- rep(NA, len.alpha)
+  mut.wins <- matrix(rep(0, len.kappa*len.alpha), nrow=len.kappa)
+  both.exist <- matrix(rep(0, len.kappa*len.alpha), nrow=len.kappa)
+  steps <- matrix(rep(0, len.kappa*len.alpha), nrow=len.kappa)
+
+  ## OK, now start reading in the results
+  for (i in seq(len.kappa)) {
+    for (j in seq(len.alpha)) {
+      for (k in seq(runs)) {
+        ## open results
+        r <- dps.load(file.path(path, sprintf("results.%d.%d.%d.h5",
+                                              i-1, j-1, k-1)))
+        ## record pconj
+        if (i==1 && j==1 && k==1)
+          pconj <- r$settings$pconj
+        ## store values of beta and kappa
+        if (k==1) {
+          kappa[i] <- r$competition$contenders$B$kappa
+          alpha[j] <- r$competition$contenders$B$alpha
+        }
+        ## figure out (and store) number of steps
+        last.step <- nrow(r$competition$frequencies)
+        steps[i,j] <- steps[i,j] + last.step
+        ## does mutant win??
+        if (r$competition$frequencies$A[last.step] == 0 &&
+            r$competition$frequencies$B[last.step] > 0)
+          mut.wins[i,j] <- mut.wins[i,j] + 1
+        ## do both exist?
+        if (r$competition$frequencies$A[last.step] > 0 &&
+            r$competition$frequencies$B[last.step] > 0)
+          both.exist[i,j] <- both.exist[i,j] + 1
+        rm(r)
+      }
+    }
+  }
+
+  ## form results
+  results <- list(kappa.values=kappa,
+                  alpha.values=alpha,
+                  runs=runs,
+                  mut.wins=mut.wins / runs,
+                  both.exist=both.exist / runs,
+                  steps=steps / runs,
+                  pconj=pconj)
+
+  save(results, file=file.path(path, "results.xdr"), compress=T)
+  
+}
+
+
+dps.pp.load.comp <- function(fname) {
+  load(fname)
+  results
+}
+
+
+## ==================================================================
+## ==================================================================
+##                       AD-HOC FUNCTIONS
+## ==================================================================
+## ==================================================================
 
 
 
