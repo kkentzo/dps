@@ -17,17 +17,17 @@ LD_LIBRARY_PATH=/home/kkentzo/local/lib
 DPS_EXE=../src/dps
 # the path to the input HDF files (containing
 # the constructed populations)
-INPUT_DIR=../populations/populations.0.01
+INPUT_DIR=./populations/c
 # the path to the results files
-RESULTS_DIR=../results
+RESULTS_DIR=./results
 # the value of PCONJ
 PCONJ=0.01
 # common arguments to dps
-ARGS="-c --steps 500 --print_every 0"
+ARGS="-c --steps 100 --print_every 0"
 # how many cores to use
-CORES=20
+CORES=4
 # how may runs per value of pconj
-RUNS=5
+RUNS=1
 
 # the number of KAPPA and ALPHA values
 N_KAPPA=10

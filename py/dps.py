@@ -159,14 +159,15 @@ class Host:
             self.plasmids.append(plasmid)
 
     def tostring(self):
-        return "(%.3e 0.05 1 0 0 (%s))" % (self.omega,
-                                           ' '.join([p.tostring() for p in self.plasmids]))
+        return "(%.3e 0.05 1 0 0 (%s))" % \
+               (self.omega, ' '.join([p.tostring() for p in self.plasmids]))
 
 
 
 
 
-def construct_population(fname_out, wt_tuple, mut_tuple, n=1000, r_wt=7, r_mut=0.01):
+def construct_population(fname_out, wt_tuple, mut_tuple, n=1000,
+                         r_wt=7, r_mut=0.01):
     """
     construct a population and save it in FNAME_OUT (and HDF file)
     (WT|MUT)_TUPLE are 3-tuples containing (b,k,a) profile configurations
@@ -215,14 +216,15 @@ def construct_population(fname_out, wt_tuple, mut_tuple, n=1000, r_wt=7, r_mut=0
 
 
 
-# BEWARE of corrupted hdf output files - run script on them
-# before deploying to cluster!!
-def generate_populations(wt_tuple=(0.4, 0.9, 0.9),
-                         kappa_values=NP.arange(0.85, 0.95, 0.01),
-                         alpha_values=NP.arange(0.85, 0.95, 0.01),
-                         r_wt=7, r_mut=0.01,
-                         path="populations",
-                         only=[]):
+# KAPPA-ALPHA EXPERIMENTS
+# BEWARE of corrupted hdf output files
+# ==> validate using validate_populations()
+def generate_populations_ka(wt_tuple=(0.4, 0.9, 0.9),
+                            kappa_values=NP.arange(0.85, 0.95, 0.01),
+                            alpha_values=NP.arange(0.85, 0.95, 0.01),
+                            r_wt=7, r_mut=0.01,
+                            path="populations",
+                            only=[]):
 
     # if PATH does not exist -- create it
     if not os.path.exists(path):
@@ -234,9 +236,37 @@ def generate_populations(wt_tuple=(0.4, 0.9, 0.9),
             if len(only) > 0 and (i,j) not in only:
                 continue
             print "Creating %s" % fname
-            construct_population(fname, wt_tuple, (wt_tuple[0], kappa, alpha),
+            construct_population(fname, wt_tuple,
+                                 (wt_tuple[0], kappa, alpha),
                                  r_wt=r_wt, r_mut=r_mut)
-                                 
+
+
+
+# BETA-ALPHA EXPERIMENTS
+# BEWARE of corrupted hdf output files
+# ==> validate using validate_populations()
+def generate_populations_ba(wt_tuple=(0.4, 0.9, 0.9),
+                            beta_values=NP.arange(0.35, 0.45, 0.01),
+                            alpha_values=NP.arange(0.85, 0.95, 0.01),
+                            r_wt=7, r_mut=0.01,
+                            path="populations",
+                            only=[]):
+
+    # if PATH does not exist -- create it
+    if not os.path.exists(path):
+        os.makedirs(path)
+
+    for i, beta in enumerate(beta_values):
+        for j, alpha in enumerate(alpha_values):
+            fname = os.path.join(path, "population.%d.%d.h5" % (i,j))
+            if len(only) > 0 and (i,j) not in only:
+                continue
+            print "Creating %s" % fname
+            construct_population(fname, wt_tuple,
+                                 (beta, wt_tuple[1], alpha),
+                                 r_wt=r_wt, r_mut=r_mut)
+
+
 
 
 #                          ============  
