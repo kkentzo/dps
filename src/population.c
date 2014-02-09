@@ -340,10 +340,15 @@ void load_population_from_file(params_t *params) {
   H5LTread_dataset_string(file_id, "/population/hosts", buffer);
   // create GString for profiles
   hosts_string = g_string_new(buffer);
+  // strip any unwanted extra characters from the end 
+  // ot the hosts_string until the last char is a closing paren
+  char last = hosts_string->str[hosts_string->len-1];
+  while (last != ')') {
+    g_string_erase(hosts_string, hosts_string->len-1, 1);
+    last = hosts_string->str[hosts_string->len-1];
+  }
   // free buffer
   free(buffer);
-
-  //printf("profiles=%s\nhosts=%s\n", profiles_string->str, hosts_string->str);
 
   // close file
   H5Fclose(file_id);
