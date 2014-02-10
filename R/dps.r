@@ -1927,12 +1927,42 @@ dps.pp.comp <- function(path, cores=1, stable="beta") {
 }
 
 
+
+## loads the post-processed comp results from FNAME
 dps.pp.comp.load <- function(fname) {
   load(fname)
   results
 }
 
 
+## loads all the results, i.e. a,b,c,d which exist
+## as directories in PATH
+dps.pp.comp.load.all <- function(path) {
+  results <- list()
+  for (exp in c("a", "b", "c", "d")) {
+    results[[exp]] <- dps.pp.comp.load(file.path(path, exp, "results.xdr"))
+    results[[exp]][["label"]] <- exp
+  }
+  results
+}
+
+
+
+## plots the results of the supplied comp experiment
+## the experiment is derived from results$label
+dps.pp.comp.plot <- function(results) {
+
+  if (results$label %in% c("a", "b"))
+    xlab <- "kappa"
+  else
+    xlab <- "beta"
+  levels <- seq(0, 0.5, by=0.05)
+  filled.contour(results$x.values, results$y.values, results$mut.wins,
+                 main=results$label, xlab=xlab, ylab="alpha",
+                 levels=levels, 
+                 col=colorpanel(length(levels), "white", "grey10"))
+  
+}
 
 ## ==================================================================
 ## ==================================================================
