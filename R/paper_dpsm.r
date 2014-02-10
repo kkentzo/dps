@@ -164,6 +164,44 @@ plot.fig3 <- function(results.b, results.bka, plot=F) {
 }
 
 
+
+plot.fig3r <- function(results.b.new, results.bka.new, plot=F) {
+
+  layout(matrix(1))
+
+  if (plot)
+    pdf("fig3r.pdf", w=6, h=6)
+
+  mplot(results.b.new$pconj.values,
+        cbind(
+            ## plot the covariances for NO-CNC and CNC
+            results.b.new$M$drelatedness$oo$cov$beta,
+            results.bka.new$M$drelatedness$oo$cov$beta,
+            ## plot the variances for NO-CNC and CNC
+            results.b.new$M$drelatedness$oo$var$beta,
+            results.bka.new$M$drelatedness$oo$var$beta
+            ),
+        xlab=expression(p[c]), ylab="", type="l", ltype=c(1,1,2,2),
+        ylim=log10(c(3e-5, 1e-3)),
+        log.take="xy", main=expression(paste("Relatedness (", beta, ")")),
+        col=c("blue", "red", "blue", "red"))
+
+  ##expression(cov(beta[ij],bar(beta)[i]))
+  legend("left", c(expression(cov(beta[ij],bar(beta)[i])),
+                   expression(var(beta[ij]))),
+         lwd=1, col="black", lty=c(1,2))
+  text(log10(results.b.new$pconj.values[15]), log10(6e-4),
+       labels="CNC", cex=2, col="red")
+  text(log10(results.b.new$pconj.values[15]), log10(7e-5),
+       labels="NO-CNC", cex=2, col="blue")
+
+  if (plot)
+    dev.off()
+  
+  
+}
+
+
 ## ===========================================================================
 ## plots the averages of the Price equation components as a function of pconj
 ## in the CNC case

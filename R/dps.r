@@ -2114,9 +2114,12 @@ dps.pp.compare.relatedness <- function(results.b, results.bka) {
 
 ## compares the cov and var components OO relatedness
 ## between NO-CNC and CNC simulations
-dps.pp.compare.relatedness.components <- function(results.b, results.bka) {
+dps.pp.compare.relatedness.components <- function(results.b, results.bka,
+                                                  only=c("beta")) {
 
   var.names <- c("beta", "kappa", "alpha")
+  if (is.null(only))
+    only <- var.names
 
   ## form data frames
   cov.nocnc.mean <- data.frame(Reduce(cbind, results.b$M$drelatedness$oo$cov, c()))
@@ -2131,26 +2134,25 @@ dps.pp.compare.relatedness.components <- function(results.b, results.bka) {
   names(cov.cnc.mean) <- var.names
   names(var.cnc.mean) <- var.names
 
-  layout(matrix(1:3, nrow=1))
+  layout(matrix(1:length(only), nrow=1))
 
   for (var.name in var.names) {
 
-    mplot(results.b$pconj,
-          cbind(cov.nocnc.mean[[var.name]], cov.cnc.mean[[var.name]],
-                var.nocnc.mean[[var.name]], var.cnc.mean[[var.name]]),
-          xlab=expression(p[c]), ylab="", type="l", ltype=c(1,1,2,2),
-          log.take="xy", main=sprintf("Relatedness (%s)", var.name),
-          col=c("blue", "red", "blue", "red"))
-    ## mplot(cbind(var.nocnc.mean[[var.name]], var.cnc.mean[[var.name]]),
-    ##       cbind(cov.nocnc.mean[[var.name]], cov.cnc.mean[[var.name]]),
-    ##       log.take="xy", main=sprintf("Relatedness (%s)", var.name),
-    ##       xlab="var", ylab="cov", col=c("blue", "red"))
+    if (var.name %in% only) {
 
-    if (var.name == "beta") {
-      legend("left", c("NO-CNC", "CNC"),
-             lwd=1, col=c("blue", "red"))
-      legend("right", c("cov", "var"),
-             lwd=1, lty=c(1,2), col="black")
+      mplot(results.b$pconj,
+            cbind(cov.nocnc.mean[[var.name]], cov.cnc.mean[[var.name]],
+                  var.nocnc.mean[[var.name]], var.cnc.mean[[var.name]]),
+            xlab=expression(p[c]), ylab="", type="l", ltype=c(1,1,2,2),
+            log.take="xy", main=sprintf("Relatedness (%s)", var.name),
+            col=c("blue", "red", "blue", "red"))
+
+      if (var.name == "beta") {
+        legend("left", c("NO-CNC", "CNC"),
+               lwd=1, col=c("blue", "red"))
+        legend("right", c("cov", "var"),
+               lwd=1, lty=c(1,2), col="black")
+      }
     }
   }
 
