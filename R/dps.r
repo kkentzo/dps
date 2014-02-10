@@ -24,9 +24,10 @@ tryCatch(trySource('./krutils.r'),
 
 
 ## load the data from file FNAME
-dps.load <- function( fname ) {
+dps.load <- function( fname, verbose=F ) {
 
-  print(sprintf("Loading file %s", fname))
+  if (verbose)
+    print(sprintf("Loading file %s", fname))
 
   results <- hdf5load(fname, load=F, tidy=T)
 
@@ -1825,7 +1826,7 @@ dps.pp.plot.price.components <- function(results, name) {
 
 ## post-process the results of the comp experiment in PATH
 ## and save them in $PATH/results.xdr
-dps.pp.comp <- function(path, cores=1) {
+dps.pp.comp <- function(path, cores=1, stable="beta") {
 
   ## gather all results files
   fnames <- Sys.glob(file.path(path, "results.[0-9]*.h5"))
@@ -1834,41 +1835,45 @@ dps.pp.comp <- function(path, cores=1) {
   pconj <- r$settings$pconj
   rm(r)
   ## count the the number of kappa, alpha and runs values
-  len.kappa <- 0
-  len.alpha <- 0
+  len.x <- 0
+  len.y <- 0
   runs <- 0
   for (fname in fnames) {
     ## extract numerical tokens 
     tokens1 <- strsplit(fname, "results\\.")[[1]]
     tokens <- strsplit(tokens1[length(tokens1)], "\\.")[[1]]
-    k <- as.numeric(tokens[1])
-    a <- as.numeric(tokens[2])
+    x <- as.numeric(tokens[1])
+    y <- as.numeric(tokens[2])
     r <- as.numeric(tokens[3])
-    if (a == 0 && r == 0)
-      len.kappa <- len.kappa + 1
-    if (k == 0 && r == 0)
-      len.alpha <- len.alpha + 1
-    if (k == 0 && a == 0)
+    if (y == 0 && r == 0)
+      len.x <- len.x + 1
+    if (x == 0 && r == 0)
+      len.y <- len.y + 1
+    if (x == 0 && y == 0)
       runs <- runs + 1
   }
 
-  cat("KAPPA=", len.kappa, "\nALPHA=", len.alpha,
+  cat("X=", len.x, "\nY=", len.y,
       "\nRUNS=", runs, "\npconj=", pconj, "\n\n")
 
   ## process all runs for the specific combination
-  ## of (i.kappa, i.alpha) <-- these are 1-based indices
-  process.kappa.alpha <- function( i.kappa, i.alpha ) {
+  ## of (i.x, i.y) <-- these are 1-based indices
+  process.x.y <- function( i.x, i.y ) {
     result <- list(mut.wins=rep(0,runs),
                    both.exist=rep(0,runs),
                    steps=rep(0,runs))
     for (i.run in seq(runs)) {
       ## load file
       r <- dps.load(file.path(path, sprintf("results.%d.%d.%d.h5",
-                                            i.kappa-1, i.alpha-1, i.run-1)))
+                                            i.x-1, i.y-1, i.run-1)))
       ## record values of kappa and alpha
       if (i.run == 1) {
-        kappa <- r$competition$contenders$B$kappa
-        alpha <- r$competition$contenders$B$alpha
+        if (stable == "beta") {
+          x <- r$competition$contenders$B$kappa
+        } else {
+          x <- r$competition$contenders$B$beta
+        }
+        y <- r$competition$contenders$B$alpha
       }
       ## figure out (and store) number of steps
       result$steps[i.run] <- nrow(r$competition$frequencies)
@@ -1884,50 +1889,49 @@ dps.pp.comp <- function(path, cores=1) {
     }
     ## calculate means and return results
     c(lapply(result, mean),
-      i.kappa=i.kappa, i.alpha=i.alpha,
-      kappa=kappa, alpha=alpha)
+      i.x=i.x, i.y=i.y, x=x, y=y)
   }
 
 
   ## formulate the list of jobs to be calculated
   jobs <- list()
   ctr <- 1
-  for (i in seq(len.kappa)) {
-    for (j in seq(len.alpha)) {
-      jobs[[ctr]] <- list(i.kappa=i, i.alpha=j)
+  for (i in seq(len.x)) {
+    for (j in seq(len.y)) {
+      jobs[[ctr]] <- list(i.x=i, i.y=j)
       ctr <- ctr + 1
     }
   }
   ## schedule the jobs in parallel
   job.results <- mclapply(jobs,
-                          function(job) process.kappa.alpha(job$i.kappa,
-                                                            job$i.alpha),
+                          function(job) process.x.y(job$i.x, job$i.y),
                           mc.cores=cores)
 
   ## aggregate results
   results <- list(pconj=pconj,
                   runs=runs,
-                  kappa.values=rep(NA, len.kappa),
-                  alpha.values=rep(NA, len.alpha),
-                  mut.wins=matrix(NA, nrow=len.kappa, ncol=len.alpha),
-                  both.exist=matrix(NA, nrow=len.kappa, ncol=len.alpha),
-                  steps=matrix(NA, nrow=len.kappa, ncol=len.alpha))
+                  x.values=rep(NA, len.x),
+                  y.values=rep(NA, len.y),
+                  mut.wins=matrix(NA, nrow=len.x, ncol=len.y),
+                  both.exist=matrix(NA, nrow=len.x, ncol=len.y),
+                  steps=matrix(NA, nrow=len.x, ncol=len.y))
   for (r in job.results) {
-    results$kappa.values[r$i.kappa] <- r$kappa
-    results$alpha.values[r$i.alpha] <- r$alpha
-    results$mut.wins[r$i.kappa,r$i.alpha] <- r$mut.wins
-    results$both.exist[r$i.kappa,r$i.alpha] <- r$both.exist
-    results$steps[r$i.kappa,r$i.alpha] <- r$steps
+    results$x.values[r$i.x] <- r$x
+    results$y.values[r$i.y] <- r$y
+    results$mut.wins[r$i.x,r$i.y] <- r$mut.wins
+    results$both.exist[r$i.x,r$i.y] <- r$both.exist
+    results$steps[r$i.x,r$i.y] <- r$steps
   }
 
   save(results, file=file.path(path, "results.xdr"), compress=T)
 }
 
 
-dps.pp.load.comp <- function(fname) {
+dps.pp.comp.load <- function(fname) {
   load(fname)
   results
 }
+
 
 
 ## ==================================================================
@@ -2203,7 +2207,7 @@ process.relatedness.adhoc <- function(path="relatedness") {
 ##        Rscript dps.r PATH CORES
 ## to post-process the results of an experiment in PATH
 ## and produce $PATH/results.xdr
-##        Rscript dps.r comp PATH CORES
+##        Rscript dps.r comp PATH CORES STABLE
 ## to post-process the results of a COMP experiment in PATH
 ## and produce PATH/results.xdr
 ##        Rscript dps.r plot RESULTS_PATH PNG_PATH CORES
@@ -2232,8 +2236,8 @@ if (length(idx.args) > 0) {
     ## post-process the results
     dps.pp.experiment.parallel(options[1], as.numeric(options[2]))
 
-  } else if (length(options) == 3 && options[1] == "comp") {
-    dps.pp.comp(options[2], as.numeric(options[3]))
+  } else if (length(options) == 4 && options[1] == "comp") {
+    dps.pp.comp(options[2], as.numeric(options[3]), options[4])
   } else if (length(options) == 4 && options[1] == "plot") {
 
     ## option[2] is the path to the h5 files [or FNAME for the serial version of plot.all()]
