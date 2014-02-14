@@ -33,8 +33,9 @@ price.plot.fig1 <- function( results, highlight=F, plot=F ) {
                   cbind(sqrt(results$dynamics$global$V$beta),
                         sqrt(results$dynamics$global$V$kappa),
                         sqrt(results$dynamics$global$V$alpha)),
-                  main="", col=c("blue", "red", "green"), ylim=c(0,1),
-                  xlab="Evolutionary Time", ylab="", xaxt='n')
+                  col=c("blue", "red", "green"), ylim=c(0,1),
+                  ylab="Plasmid Replication Parameters",
+                  xlab="Evolutionary Time", xaxt='n')
 
   ## legend("topleft", c(expression(beta), expression(kappa), expression(alpha)),
   ##        lwd=1, col=c("blue", "red", "green"))
@@ -67,50 +68,37 @@ price.plot.fig1 <- function( results, highlight=F, plot=F ) {
 
 ## ===========================================================================
 ## plots the dynamics of the Price equation components for bka
-price.plot.fig2 <- function(results, dz, steps.range=c(2e5, 3e5),
-                            price.ylim=c(-1e-5, 1e-5), plot=F) {
+price.plot.fig2 <- function(dz, steps.range=NA, ##steps.range=c(2e5, 3e5),
+                            price.ylim=c(-4e-6, 4e-6), plot=F) {
 
 
   ## calculate steps.range
   if (length(steps.range) != 2) 
-    steps.range <- 1:nrow(results$dynamics$global$M)
+    steps.range <- 1:length(dz$fitness)
   else
     steps.range <- steps.range[1]:steps.range[2]
 
+  first.three.quarters <- steps.range[1:(3*length(steps.range)/4)]
+  last.quarter <- steps.range[(3*length(steps.range)/4):length(steps.range)]
+
   if (plot)
-    pdf("fig2.pdf", width=15, height=10)
+    pdf("fig2.pdf", width=10, height=5)
 
-  layout(matrix(1:6, ncol=3, byrow=F))
+  layout(matrix(1:4, ncol=4), widths=c(1,rep(5,3)))
+  par.bak <- par(no.readonly = TRUE)
+  # plot the ylabel
+  par(mar=c(6,0,4,2))
+  plot(1:10, 1:10, xlab="", ylab="", type="n", axes=F)
+  ##box("fig", col="red") ## for debugging
+  text(5, 5.5,
+       expression(paste("Price Equation Components", "  (x", 10^-6,")")),
+       cex=1.5, srt=90)
 
-  alphabet <- c("A", "D", "B", "E", "C", "F")
-
+  ## plot the Price equation components
+  alphabet <- c("A", "B", "C")
   i <- 1
 
   for (name in c("beta", "kappa", "alpha")) {
-
-
-    legend.loc <- switch(name,
-                         beta="topright",
-                         kappa="topleft",
-                         alpha="topright")
-
-    dyn <- results$dynamics$global$M[[name]][steps.range]
-    dyn.sd <- sqrt(results$dynamics$global$V[[name]][steps.range])
-    dyn.ylim <- range(c(dyn-dyn.sd, dyn+dyn.sd))
-
-    ## plot the evolutionary dynamics
-    plot.with.range(dyn, dyn.sd, x=steps.range, ylim=dyn.ylim,
-                    main=switch(name,
-                        beta=expression(paste("Evolutionary Dynamics of ", bar(beta))),
-                        kappa=expression(paste("Evolutionary Dynamics of ", bar(kappa))),
-                        alpha=expression(paste("Evolutionary Dynamics of ", bar(alpha)))),
-                    xlab="Evolutionary Time", ylab="", col="black",
-                    cex.main=2, cex.axis=1.5, cex.lab=1.5)
-    
-    ## write figure label
-    text(steps.range[1], dyn.ylim[2], labels=alphabet[i], cex=4, adj=c(0, 1))
-
-    i <- i+1
 
     total = dz[[name]]$total[steps.range]
     inter = dz[[name]]$inter[steps.range]
@@ -119,124 +107,62 @@ price.plot.fig2 <- function(results, dz, steps.range=c(2e5, 3e5),
 
     ## print out some info
     cat("==> ", name, "\n")
-    cat("inter = ", mean(inter, na.rm=T), "\n")
-    cat("intra = ", mean(intra, na.rm=T), "\n")
+    cat("inter = ", mean(inter[first.three.quarters], na.rm=T),
+        "|", mean(inter[last.quarter], na.rm=T), "\n")
+    cat("intra = ", mean(intra[first.three.quarters], na.rm=T),
+        "|", mean(intra[last.quarter], na.rm=T), "\n")
 
     ## plot the Price Equation components
     mplot(steps.range, cbind(total, inter, intra, tbias),
-          main=switch(name,
-            beta=expression(paste("Price Equation Components of ",
-              Delta,bar(beta), "  (x", 10^-5,")")),
-            kappa=expression(paste("Price Equation Components of ",
-              Delta,bar(kappa), "  (x", 10^-5,")")),
-            alpha=expression(paste("Price Equation Components of ",
-              Delta,bar(alpha), "  (x", 10^-5,")"))),
-          ylim=price.ylim, yaxt="n",
-          xlab="Evolutionary Time", ylab="", 
+          ## main=switch(name,
+          ##     beta=expression(paste(Delta,bar(beta))),
+          ##     kappa=expression(paste(Delta,bar(kappa))),
+          ##     alpha=expression(paste(Delta,bar(alpha)))),
+          xlab=switch(name,
+              kappa=expression(paste("Evolutionary Time",
+                "  (x", 10^5,")")),
+              ""),
+          ylab="",
+          ylim=price.ylim,
+          xaxt="n", yaxt="n",
           col=c("black", "blue", "red", "green"),
-          cex.main=2, cex.axis=1.5, cex.lab=1.5)
+          cex.main=2, cex.lab=1.5)
     ## write figure label
-    text(steps.range[1], price.ylim[2], labels=alphabet[i], cex=4, adj=c(0, 1))
+    text(steps.range[length(steps.range)], price.ylim[1],
+         labels=alphabet[i], cex=4, pos=2)
     ## draw the Y axis (major ticks)
-    axis(2, at=seq(-1.5e-5, 1.5e-5, 0.5e-5),
-         labels=seq(-1.5, 1.5, 0.5),
+    axis(2, at=seq(-4e-6, 4e-6, 2e-6),
+         labels=switch(name, beta=seq(-4, 4, 2), NA),
          cex.axis=1.5)
-    ## draw the Y axis (minor ticks)
-    ##axis(2, at=c(-1.5e-5, -0.5e-5, 0, 0.5e-5, 1.5e-5), labels=NA)
+    ## draw the X axis (major ticks)
+    axis(1, at=seq(0, 1e6, 2.5e5),
+         labels=seq(0, 10, 2.5),
+         cex.axis=1.5)
     
     abline(h=0)
-
-    ## plot a frame??
-    ## x <- c(rep(169466, 2), rep(177372, 2))
-    ## y <- c(-1.5e-5, 1.5e-5, 1.5e-5, -1.5e-5)
-    ## polygon(x, y, border=NA, col=adjustcolor("gray", alpha.f=0.6))
 
     i <- i + 1
 
   }
 
-  if (plot)
-    dev.off()
-
+  par(par.bak)
   layout(matrix(1))
-  
-}
-
-
-
-
-## ===========================================================================
-## plot the decline of intra beta over time
-price.plot.fig3 <- function( dz, plot=F ) {
-
-  if (plot)
-    pdf("fig3.pdf", w=6, h=6)
-
-  intra.beta <- log10(dz$beta$intra)
-
-  rng <- range(intra.beta, na.rm=T)
-
-  plot(log10(dz$beta$intra), t="l", xlab="Evolutionary Time", ylab="",
-       main=expression(paste("Within-host Selection on ", beta)), col="blue",
-       xaxt='n', yaxt='n', ylim=c(floor(rng[1]), rng[2]))
-  decorate.log("y")
-
-  ## mark the time ticks properly
-  xticks.at <- 10000 * seq(0, 100, 25)
-  axis(1, at=xticks.at)
-
-  if (plot)
-    dev.off()
-
-}
-
-
-
-
-
-
-
-## ===========================================================================
-## plot the dynamics of tbiases
-price.plot.fig4 <- function(dz, plot=F) {
-
-  if (plot)
-    pdf("fig4.pdf", w=6, h=6)
-
-  layout(matrix(1))
-  mplot(Reduce(cbind,
-               lapply(c("beta", "kappa", "alpha"),
-                      function(z.name) dz[[z.name]]$tbias),
-               init=NULL), xaxt='n', yaxt='n',
-        ylim=c(-3e-6, 3e-6),
-        main=expression(paste("Transmission Biases (x", 10^-6,")")),
-        xlab="Evolutionary Time")
-  abline(h=0)
-  ## mark the time ticks properly
-  xticks.at <- 10000 * seq(0, 100, 25)
-  axis(1, at=xticks.at)
-  ## draw the Y axis (major ticks)
-  axis(2, at=seq(-3e-6, 3e-6, 1.5e-6),
-       labels=seq(-3, 3, 1.5))
-  ##cex.axis=1.5)
 
   if (plot)
     dev.off()
   
-  
-  
 }
+
+
 
 
 
 ## ===========================================================================
 ## plot relatedness 
-price.plot.fig5 <- function(dz, plot=F ) {
+price.plot.fig3 <- function(dz, plot=F ) {
 
   if (plot)
-    pdf("fig5.pdf", w=6, h=6)
-
-  ## TODO!! ==> DZ is changed - take cov/var
+    pdf("fig3.pdf", w=6, h=6)
 
   layout(matrix(1))
 
@@ -245,12 +171,14 @@ price.plot.fig5 <- function(dz, plot=F ) {
                lapply(c("beta", "kappa", "alpha"),
                       function(z.name) dz[[z.name]]$r$cov / dz[[z.name]]$r$var),
                init=NULL),
-        main="Relatedness", xlab="Evolutionary Time",
-        xaxt='n', ylim=c(0.6, 1))
+        ylab="Relatedness", xlab="Evolutionary Time",
+        xaxt='n', yaxt='n', ylim=c(0.7, 1))
 
   ## mark the time ticks properly
   xticks.at <- 10000 * seq(0, 100, 25)
   axis(1, at=xticks.at)
+  axis(2, at=seq(0.7,1,0.1))
+  
       
   if (plot)
     dev.off()
@@ -261,10 +189,10 @@ price.plot.fig5 <- function(dz, plot=F ) {
 
 ## ===========================================================================
 ## plot host growth and the copy number distributions over time
-price.plot.fig6 <- function(results, dz, plot=F ) {
+price.plot.fig4 <- function(results, dz, plot=F ) {
 
   if (plot)
-    pdf("fig6.pdf", w=10, h=5)
+    pdf("fig4.pdf", w=10, h=5)
 
   layout(matrix(1:2, ncol=2))
 
@@ -288,11 +216,12 @@ price.plot.fig6 <- function(results, dz, plot=F ) {
   ## exclude n=0 from plot
   y <- y[2:length(x),]
   x <- x[2:length(x)]
+  colors <- colorRampPalette(c("red", "blue"))(ncol(y))
   mplot(log10(x), y,
         main=expression(paste("Copy Number Frequencies (x", , 10^6, ")")),
         xlab=expression(n), 
         xaxt='n', yaxt='n', 
-        col=redblue(ncol(y)))
+        col=colors)
   decorate.log("x")
   ## draw the Y axis (major ticks)
   axis(2, at=seq(0, 6e6, 2e6),
@@ -309,7 +238,7 @@ price.plot.fig6 <- function(results, dz, plot=F ) {
 
 ## ===========================================================================
 ## plot BHS on beta with events
-price.plot.fig7 <- function(dz, plot=F, steps.range=c(1,5e5)) {
+price.plot.fig5 <- function(dz, plot=F, steps.range=c(1,5e5)) {
 
   ## calculate steps.range
   if (length(steps.range) != 2) 
@@ -318,7 +247,7 @@ price.plot.fig7 <- function(dz, plot=F, steps.range=c(1,5e5)) {
     steps.range <- steps.range[1]:steps.range[2]
 
   if (plot)
-    pdf("fig7.pdf", w=10, h=4)
+    pdf("fig5.pdf", w=10, h=4)
 
   layout(matrix(1:3, ncol=3))
 
@@ -340,15 +269,15 @@ price.plot.fig7 <- function(dz, plot=F, steps.range=c(1,5e5)) {
           col=c("black", "blue", "red"),
           main=main, xaxt='n', yaxt='n',
           xlab=if (z.name=="kappa") "Evolutionary Time" else "",
-          ylim=c(-4e-5, 4e-5), cex.main=2, cex.lab=1.5)
+          ylim=c(-2e-5, 2e-5), cex.main=2, cex.lab=1.5)
     abline(h=0)
     ## mark the time ticks properly
     axis(1, at=xticks,
          labels=sapply(xticks, function(x) sprintf("%d",x)),
          cex.axis=1.5)
     ## draw the Y axis (major ticks)
-    axis(2, at=seq(-4e-5, 4e-5, 2e-5),
-         labels=seq(-4, 4, 2), cex.axis=1.5)
+    axis(2, at=seq(-2e-5, 2e-5, 2e-5),
+         labels=seq(-2, 2, 2), cex.axis=1.5)
   }
 
   if (plot)
