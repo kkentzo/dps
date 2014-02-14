@@ -1922,6 +1922,11 @@ dps.pp.comp <- function(path, cores=1, stable="beta") {
     results$both.exist[r$i.x,r$i.y] <- r$both.exist
     results$steps[r$i.x,r$i.y] <- r$steps
   }
+  ## attach experiment label to results
+  if (stable == "beta")
+    results$label <- "ka"
+  else if (stable == "kappa")
+    results$label <- "ba"
 
   save(results, file=file.path(path, "results.xdr"), compress=T)
 }
@@ -1935,31 +1940,27 @@ dps.pp.comp.load <- function(fname) {
 }
 
 
-## loads all the results, i.e. a,b,c,d which exist
-## as directories in PATH
-dps.pp.comp.load.all <- function(path) {
-  results <- list()
-  for (exp in c("a", "b", "c", "d")) {
-    results[[exp]] <- dps.pp.comp.load(file.path(path, exp, "results.xdr"))
-    results[[exp]][["label"]] <- exp
-  }
-  results
-}
-
-
-
 ## plots the results of the supplied comp experiment
 ## the experiment is derived from results$label
 dps.pp.comp.plot <- function(results) {
 
-  if (results$label %in% c("a", "b"))
-    xlab <- "kappa"
-  else
+  if (results$label == "ba") {
     xlab <- "beta"
-  levels <- seq(0, 0.5, by=0.05)
+    xlim <- c(0.30,0.50)
+    ylim <- c(0.80,1)
+  } else if (results$label == "ka") {
+    xlab <- "beta"
+    xlim <- c(0.80,1)
+    ylim <- c(0.80,1)
+  } else {
+    stop(sprintf("Experiment %s not supported\n", results$label))
+  }
+
+  levels <- seq(0, 0.1, by=0.01)
+  
   filled.contour(results$x.values, results$y.values, results$mut.wins,
                  main=results$label, xlab=xlab, ylab="alpha",
-                 levels=levels, 
+                 levels=levels, xlim=xlim, ylim=ylim,
                  col=colorpanel(length(levels), "white", "grey10"))
   
 }

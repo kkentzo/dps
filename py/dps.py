@@ -216,41 +216,13 @@ def construct_population(fname_out, wt_tuple, mut_tuple, n=1000,
 
 
 
-# KAPPA-ALPHA EXPERIMENTS
-# BEWARE of corrupted hdf output files
-# ==> validate using validate_populations()
-def generate_populations_ka(wt_tuple=(0.4, 0.9, 0.9),
-                            kappa_values=NP.arange(0.85, 0.95, 0.01),
-                            alpha_values=NP.arange(0.85, 0.95, 0.01),
-                            r_wt=7, r_mut=0.01,
-                            path="populations",
-                            only=[]):
-
-    # if PATH does not exist -- create it
-    if not os.path.exists(path):
-        os.makedirs(path)
-
-    for i, kappa in enumerate(kappa_values):
-        for j, alpha in enumerate(alpha_values):
-            fname = os.path.join(path, "population.%d.%d.h5" % (i,j))
-            if len(only) > 0 and (i,j) not in only:
-                continue
-            print "Creating %s" % fname
-            construct_population(fname, wt_tuple,
-                                 (wt_tuple[0], kappa, alpha),
-                                 r_wt=r_wt, r_mut=r_mut)
-
 
 
 # BETA-ALPHA EXPERIMENTS
-# BEWARE of corrupted hdf output files
-# ==> validate using validate_populations()
-def generate_populations_ba(wt_tuple=(0.4, 0.9, 0.9),
-                            beta_values=NP.arange(0.35, 0.45, 0.01),
-                            alpha_values=NP.arange(0.85, 0.95, 0.01),
-                            r_wt=7, r_mut=0.01,
-                            path="populations",
-                            only=[]):
+def generate_populations_ba(path, wt_tuple=(0.4, 0.9, 0.9),
+                            beta_values=NP.arange(0.40, 0.51, 0.01),
+                            alpha_values=NP.arange(0.9, 1.01, 0.01),
+                            r_wt=7, r_mut=0.01):
 
     # if PATH does not exist -- create it
     if not os.path.exists(path):
@@ -259,13 +231,35 @@ def generate_populations_ba(wt_tuple=(0.4, 0.9, 0.9),
     for i, beta in enumerate(beta_values):
         for j, alpha in enumerate(alpha_values):
             fname = os.path.join(path, "population.%d.%d.h5" % (i,j))
-            if len(only) > 0 and (i,j) not in only:
-                continue
-            print "Creating %s" % fname
             construct_population(fname, wt_tuple,
                                  (beta, wt_tuple[1], alpha),
                                  r_wt=r_wt, r_mut=r_mut)
 
+    print "BA: Created %d populations in %s" % (len(beta_values)*len(alpha_values), path)
+
+
+
+
+
+# KAPPA-ALPHA EXPERIMENTS
+def generate_populations_ka(path, wt_tuple=(0.4, 0.9, 0.9),
+                            kappa_values=NP.arange(0.82, 0.921, 0.01),
+                            alpha_values=NP.arange(0.9, 1.01, 0.01),
+                            r_wt=7, r_mut=0.01):
+
+    # if PATH does not exist -- create it
+    if not os.path.exists(path):
+        os.makedirs(path)
+
+    for i, kappa in enumerate(kappa_values):
+        for j, alpha in enumerate(alpha_values):
+            fname = os.path.join(path, "population.%d.%d.h5" % (i,j))
+            construct_population(fname, wt_tuple,
+                                 (wt_tuple[0], kappa, alpha),
+                                 r_wt=r_wt, r_mut=r_mut)
+
+
+    print "KA: Created %d populations in %s" % (len(kappa_values)*len(alpha_values), path)
 
 
 
