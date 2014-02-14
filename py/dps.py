@@ -152,28 +152,31 @@ class Host:
 
     def __init__(self, omega_0=1):
         self.omega = 1 + NP.random.uniform()
-        self.plasmids = []
+        self.pool = {} # a hash with keys:Profile, values:Plasmid
 
     def add_plasmid(self, plasmid):
-        if plasmid.cn > 0:
-            self.plasmids.append(plasmid)
+        try:
+            self.pool[plasmid.profile].cn += plasmid.cn
+        except KeyError:
+            # profile does not exist in the pool -- add a new entry
+            if plasmid.cn > 0:
+                self.pool[plasmid.profile] = plasmid
 
     def tostring(self):
         return "(%.3e 0.05 1 0 0 (%s))" % \
-               (self.omega, ' '.join([p.tostring() for p in self.plasmids]))
-
+               (self.omega, ' '.join([p.tostring() for p in self.pool.values()]))
 
 
 
 
 def construct_population(fname_out, wt_tuple, mut_tuple, n=1000,
-                         r_wt=7, r_mut=0.01):
+                         r_wt=7, r_mut=0.01, print_info=False):
     """
     construct a population and save it in FNAME_OUT (and HDF file)
     (WT|MUT)_TUPLE are 3-tuples containing (b,k,a) profile configurations
     N specifies the population size
     R_WT is the average number of the wild-type plasmids per host
-    R_MUT is the average number of the mutant plasmids per host
+    R_MUT is the fraction of mutants with respect to the WT
     """
 
     # reset Profile pid
@@ -183,9 +186,16 @@ def construct_population(fname_out, wt_tuple, mut_tuple, n=1000,
     wt_profile = Profile(*wt_tuple)
     mut_profile = Profile(*mut_tuple)
 
-    # determine number of plasmids in each host
+    # determine number of WT plasmids in each host
     n_wt = NP.random.poisson(r_wt, n)
-    n_mut = NP.random.poisson(r_mut, n)
+    
+    # calculate number of MUTANT plasmids
+    # based on the number of WT ones
+    n_mut = int(NP.ceil(r_mut * NP.sum(n_wt)))
+
+    if (print_info):
+        print 'total WT=', NP.sum(n_wt)
+        print 'MUT=', n_mut
 
     # assemble hosts
     hosts = []
@@ -193,8 +203,13 @@ def construct_population(fname_out, wt_tuple, mut_tuple, n=1000,
     for i in xrange(n):
         host = Host()
         host.add_plasmid(Plasmid(wt_profile, n_wt[i]))
-        host.add_plasmid(Plasmid(mut_profile, n_mut[i]))
         hosts.append(host)
+
+    # distribute mutants among hosts
+    for i in xrange(n_mut):
+        # choose a random host and add a single mutant copy
+        hosts[NP.random.randint(len(hosts))].add_plasmid(
+            Plasmid(mut_profile, 1))
 
     # form host string
     hosts_st = '(' + ' '.join([h.tostring() for h in hosts]) + ')'
@@ -219,9 +234,10 @@ def construct_population(fname_out, wt_tuple, mut_tuple, n=1000,
 
 
 # BETA-ALPHA EXPERIMENTS
-def generate_populations_ba(path, wt_tuple=(0.4, 0.9, 0.9),
-                            beta_values=NP.arange(0.40, 0.51, 0.01),
-                            alpha_values=NP.arange(0.9, 1.01, 0.01),
+def generate_populations_ba(path="populations/ba",
+                            wt_tuple=(0.4, 0.9, 0.9),
+                            beta_values=NP.arange(0.35, 0.51, 0.01),
+                            alpha_values=NP.arange(0.85, 1.01, 0.01),
                             r_wt=7, r_mut=0.01):
 
     # if PATH does not exist -- create it
@@ -242,9 +258,10 @@ def generate_populations_ba(path, wt_tuple=(0.4, 0.9, 0.9),
 
 
 # KAPPA-ALPHA EXPERIMENTS
-def generate_populations_ka(path, wt_tuple=(0.4, 0.9, 0.9),
-                            kappa_values=NP.arange(0.82, 0.921, 0.01),
-                            alpha_values=NP.arange(0.9, 1.01, 0.01),
+def generate_populations_ka(path="populations/ka",
+                            wt_tuple=(0.4, 0.9, 0.9),
+                            kappa_values=NP.arange(0.85, 1.01, 0.01),
+                            alpha_values=NP.arange(0.85, 1.01, 0.01),
                             r_wt=7, r_mut=0.01):
 
     # if PATH does not exist -- create it
