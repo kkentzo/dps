@@ -114,10 +114,6 @@ price.plot.fig2 <- function(dz, steps.range=NA, ##steps.range=c(2e5, 3e5),
 
     ## plot the Price Equation components
     mplot(steps.range, cbind(total, inter, intra, tbias),
-          ## main=switch(name,
-          ##     beta=expression(paste(Delta,bar(beta))),
-          ##     kappa=expression(paste(Delta,bar(kappa))),
-          ##     alpha=expression(paste(Delta,bar(alpha)))),
           xlab=switch(name,
               kappa=expression(paste("Evolutionary Time",
                 "  (x", 10^5,")")),
@@ -128,8 +124,8 @@ price.plot.fig2 <- function(dz, steps.range=NA, ##steps.range=c(2e5, 3e5),
           col=c("black", "blue", "red", "green"),
           cex.main=2, cex.lab=1.5)
     ## write figure label
-    text(steps.range[length(steps.range)], price.ylim[1],
-         labels=alphabet[i], cex=4, pos=2)
+    text(steps.range[length(steps.range)], price.ylim[2],
+         labels=alphabet[i], cex=4, adj=c(1,1))
     ## draw the Y axis (major ticks)
     axis(2, at=seq(-4e-6, 4e-6, 2e-6),
          labels=switch(name, beta=seq(-4, 4, 2), NA),
@@ -319,4 +315,3 @@ price.plot.variance <- function(dz, plot=F ) {
     dev.off()
 
 }
-
