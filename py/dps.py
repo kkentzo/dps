@@ -260,8 +260,8 @@ def generate_populations_ba(path="populations/ba",
 # KAPPA-ALPHA EXPERIMENTS
 def generate_populations_ka(path="populations/ka",
                             wt_tuple=(0.4, 0.9, 0.9),
-                            kappa_values=NP.arange(0.85, 1.01, 0.01),
-                            alpha_values=NP.arange(0.85, 1.01, 0.01),
+                            kappa_values=NP.arange(0.80, 0.951, 0.01),
+                            alpha_values=NP.arange(0.85, 1.0, 0.01),
                             r_wt=7, r_mut=0.01):
 
     # if PATH does not exist -- create it
