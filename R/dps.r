@@ -1942,27 +1942,41 @@ dps.pp.comp.load <- function(fname) {
 
 ## plots the results of the supplied comp experiment
 ## the experiment is derived from results$label
-dps.pp.comp.plot <- function(results) {
+dps.pp.comp.plot <- function(results, metric="mut.wins") {
 
   if (results$label == "ba") {
-    xlab <- "beta"
-    xlim <- c(0.30,0.50)
-    ylim <- c(0.80,1)
+    xlab <- expression(beta)
+    xlim <- c(0.30,0.5)
+    ylim <- c(0.80,1.0)
+    annot <- c(0.4,0.9)
   } else if (results$label == "ka") {
-    xlab <- "beta"
+    xlab <- expression(kappa)
     xlim <- c(0.80,1)
     ylim <- c(0.80,1)
+    annot <- c(0.9,0.9)
   } else {
     stop(sprintf("Experiment %s not supported\n", results$label))
   }
 
-  levels <- seq(0, 0.1, by=0.01)
+  z.rng <- range(results[[metric]])
+  if (z.rng[1] <= 1) {
+    levels <- seq(z.rng[1], z.rng[2], by=0.01)
+    nlevels <- length(levels)
+  } else {
+    nlevels = 20
+    levels = pretty(z.rng, nlevels)
+  }
   
-  filled.contour(results$x.values, results$y.values, results$mut.wins,
-                 main=results$label, xlab=xlab, ylab="alpha",
-                 levels=levels, xlim=xlim, ylim=ylim,
-                 col=colorpanel(length(levels), "white", "grey10"))
-  
+  filled.contour(results$x.values, results$y.values, results[[metric]],
+                 main=results$label, xlab=xlab, ylab=expression(alpha),
+                 levels=levels, nlevels=nlevels, xlim=xlim, ylim=ylim,
+                 col=colorpanel(length(levels), "white", "grey10"),
+                 plot.axes = {
+                   axis(1)
+                   axis(2)
+                   points(annot[1],annot[2])
+                   text(annot[1], annot[2], labels="WT", cex=1.5, pos=4)
+                 } )
 }
 
 ## ==================================================================
