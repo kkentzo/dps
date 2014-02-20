@@ -1,15 +1,29 @@
 ## insert all our functions
 tryCatch(suppressWarnings(source('dps.r')), error=function(e) source('R/dps.r'))
 
-## === use the following files for results ===
-
-## || results for varying pconj ||
-## for RESULTS.B use results.b <- dps.pp.load('/data/dpsm/htg.beta/results.xdr')
-## for RESULTS.BKA use results.bka <- dps.pp.load('/data/dpsm/htg/results.xdr')
-
-
 ## EPS plotting :
 ## setEPS(); postscript("fname.eps"); plot(); dev.off()
+
+## === use the following files for results ===
+
+load.results.b <- function() dps.pp.load('/data/dpsm/htg.beta/results.xdr')
+load.results.bka <- function() dps.pp.load('/data/dpsm/htg/results.xdr')
+load.results.comp <- function() 
+  list(ba=dps.pp.comp.load("/data/dpsm/comp/ba/results.xdr"),
+       ka=dps.pp.comp.load("/data/dpsm/comp/ka/results.xdr"))
+
+## save the results that were loaded using the above function
+## in a YAML format for use with Python's plot_comp() in dps.py
+## NOT IMPLEMENTED -- see plot.fig6() below
+save.results.comp <- function(results.comp, fname="results.comp.yaml") {
+
+  library(yaml)
+  st <- as.yaml(results.comp)
+  f <- file(fname)
+  writeLines(st, f)
+  close(f)
+  
+}
 
 
 ## ===========================================================================
@@ -406,3 +420,104 @@ plot.fig5 <- function( results ) {
         
 }
 
+
+
+
+
+## plots the results of the comp BA and KA experiments
+## produces 2 figures (fig6a, fig6b)
+## open in Inkscape, paste 6b into 6a and save as pdf
+plot.fig6 <- function(results.comp, plot=F) {
+
+  ba <- results.comp$ba
+  ka <- results.comp$ka
+  levels <- seq(0, 0.4, by=0.01)
+  nlevels <- length(levels)
+
+  width <- 7
+  height <- 6
+
+  layout(matrix(1))
+  
+  ## plot BA
+  if (plot)
+    pdf("fig6a.pdf", w=width, h=height)
+  annot <- c(0.4,0.9)
+  filled.contour(ba$x.values, ba$y.values, ba$mut.wins,
+                 xlab=expression(beta), ylab=expression(alpha),
+                 levels=levels, nlevels=nlevels,
+                 xlim=c(0.30, 0.50), ylim=c(0.8, 1),
+                 col=colorpanel(length(levels), "white", "red",),##"grey10"),
+                 plot.axes = {
+                   axis(1); axis(2);
+                   axis(3, labels=NA, tick=F); axis(4, labels=NA, tick=F)
+                   points(annot[1],annot[2])
+                   text(annot[1], annot[2], labels="WT", cex=1.5, pos=4)
+                 } )
+  if (plot)
+    dev.off()
+  else
+    qqq <- readline("press enter to continue ")
+
+  ## plot KA
+  if (plot)
+    pdf("fig6b.pdf", w=width, h=height)
+  annot <- c(0.9,0.9)
+  filled.contour(ka$x.values, ka$y.values, ka$mut.wins,
+                 xlab=expression(kappa), ylab="",
+                 levels=levels, nlevels=nlevels,
+                 xlim=c(0.8, 1), ylim=c(0.8, 1),
+                 col=colorpanel(length(levels), "white", "red",),##"grey10"),
+                 plot.axes = {
+                   axis(1); axis(2);
+                   axis(3, labels=NA, tick=F); axis(4, labels=NA, tick=F)
+                   points(annot[1],annot[2])
+                   text(annot[1], annot[2], labels="WT", cex=1.5, pos=4)
+                 } )
+  if (plot)
+    dev.off()
+
+}
+
+
+
+
+
+## ## plots the results of the comp BA and KA experiments
+## plot.fig6 <- function(results.comp) {
+
+##   ba <- results.comp$ba
+##   ka <- results.comp$ka
+
+##   ## PLOT BETA-ALPHA
+##   grid <- expand.grid(x=ba$x.values, y=ba$y.values)
+##   grid$z <- as.vector(ba$mut.wins)
+
+##   p1 <- levelplot(z ~ x*y, grid,
+##                   xlab=expression(beta), ylab=expression(alpha),
+##                   colorkey=F, interpolate=T, useRaster=T,
+##                   panel=function(...) {
+##                     panel.levelplot.raster(...)
+##                     panel.abline(v=0.4, h=0.9)
+##                   },
+##                   col.regions=colorpanel(20, "white", "red"),
+##                   xlim=c(0.30, 0.50), ylim=c(0.80, 1))
+##   ## PLOT KAPPA-ALPHA
+##   grid <- expand.grid(x=ka$x.values, y=ka$y.values)
+##   grid$z <- as.vector(ka$mut.wins)
+##   p2 <- levelplot(z ~ x*y, grid,
+##                   xlab=expression(kappa), ylab="",
+##                   colorkey=T, interpolate=T, useRaster=T,
+##                   col.regions=colorpanel(20, "white", "red"),
+##                   xlim=c(0.8, 1), ylim=c(0.80, 1))
+  
+##   ##panel = panel.levelplot.raster
+  
+##   ##levels=levels, nlevels=nlevels,
+##   ##col=colorpanel(length(levels), "white", "red",))
+##   print(p1, position=c(0, 0, 0.5, 1), more=T)
+##   print(p2, position=c(0.5, 0, 1, 1))
+
+##   ##layout(matrix(1))
+
+## }

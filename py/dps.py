@@ -2,6 +2,8 @@ import os
 import gzip
 import math
 
+import yaml
+
 import tables as T
 
 import numpy as NP
@@ -99,6 +101,58 @@ def plot_histograms(path, pair='bk', grid=None, save_to=None):
     
 
 
+
+#===========================================================================
+#                         PLOT COMP EXPERIMENT
+#===========================================================================
+
+## load and transform the YAML data in FNAME
+# see save.results.comp() in paper_dpsm.r
+def load_comp_yaml_data(fname):
+
+    f = open(fname, 'r')
+    data = yaml.load(f)
+    f.close()
+
+    # resize matrices
+    for exp in data.keys():
+        data[exp]['x.values'] = NP.array(data[exp]['x.values'])
+        data[exp]['y.values'] = NP.array(data[exp]['y.values'])
+        nrow = len(data[exp]['x.values'])
+        ncol = len(data[exp]['y.values'])
+        data[exp]['mut.wins'] = NP.resize(data[exp]['mut.wins'], (nrow,ncol))
+        data[exp]['both.exist'] = NP.resize(data[exp]['both.exist'], (nrow,ncol))
+        data[exp]['steps'] = NP.resize(data[exp]['steps'], (nrow,ncol))
+
+    return data
+
+
+
+# load the YAML data from FNAME and plot the BA, KA histograms
+# see save.results.comp() in paper_dpsm.r
+# FIX ME!!!
+def plot_comp(fname):
+
+    # load the data
+    data = load_comp_yaml_data(fname)
+
+    #return data
+
+    # form histograms
+    hists = [histogram.Histogram2D.initwith(data[exp]['x.values'],
+                                            data[exp]['y.values'],
+                                            data[exp]['mut.wins'])
+             for exp in ('ba', 'ka')]
+
+    fig = PL.Figure(layout=(1,2))
+
+    # plot BA
+    ax = fig.get_axis((0,0))
+    ax.imshow(
+    fig.imshow(hists[0].T, x_rng=(0.3, 0.5), y_rng=(0.8,1),
+               colorbar=False)
+
+    fig.show()
 
 
 
@@ -367,4 +421,8 @@ def plot_hill(cn, psi=1):
 
     PL.Figure().plot(m, ((cn*m) / (psi + cn*m), (cn*m) / (10*psi + cn*m)),
                      xlabel='m', title='$\\sum nm / (\\psi + \\sum nm)$').show()
+
+
+
+
 

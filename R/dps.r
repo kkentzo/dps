@@ -1960,7 +1960,7 @@ dps.pp.comp.plot <- function(results, metric="mut.wins") {
 
   z.rng <- range(results[[metric]])
   if (z.rng[1] <= 1) {
-    levels <- seq(z.rng[1], z.rng[2], by=0.01)
+    levels <- seq(0, 0.4, by=0.01)
     nlevels <- length(levels)
   } else {
     nlevels = 20
@@ -1970,7 +1970,7 @@ dps.pp.comp.plot <- function(results, metric="mut.wins") {
   filled.contour(results$x.values, results$y.values, results[[metric]],
                  main=results$label, xlab=xlab, ylab=expression(alpha),
                  levels=levels, nlevels=nlevels, xlim=xlim, ylim=ylim,
-                 col=colorpanel(length(levels), "white", "grey10"),
+                 col=colorpanel(length(levels), "white", "red",),##"grey10"),
                  plot.axes = {
                    axis(1)
                    axis(2)
@@ -1978,6 +1978,8 @@ dps.pp.comp.plot <- function(results, metric="mut.wins") {
                    text(annot[1], annot[2], labels="WT", cex=1.5, pos=4)
                  } )
 }
+
+
 
 ## ==================================================================
 ## ==================================================================
