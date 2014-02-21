@@ -6,3 +6,4 @@ dps
 *.png
 *.pdf
 populations
+.DS_Store
