@@ -89,18 +89,20 @@ plot.fig2 <- function(results.b, results.bka, plot=F) {
         log.take="x")
   legend("topleft", c("NO-CNC", "CNC"),
          lwd=1, col=c("blue", "red"))
-  
-
-  mplot(cbind(results.b$pconj, results.bka$pconj),
-        ##cbind(results.b$M$global$M$ht, results.bka$M$global$M$ht),
-        cbind(results.b$M$custom$ht.cn, results.bka$M$custom$ht.cn),
-        main="Conjugation Rate", ylab="", xlab=expression(p[c]),
-        log.take="x")
 
   mplot(cbind(results.b$pconj, results.bka$pconj),
         cbind(results.b$M$custom$loss.cn, results.bka$M$custom$loss.cn),
         main="Segregation Loss", xlab=expression(p[c]), ylab="",
         log.take="xy", col=c("blue", "red"))
+  
+
+  mplot(cbind(results.b$pconj, results.bka$pconj),
+        cbind(results.b$M$counters$inf / results.b$M$counters$n,
+              results.bka$M$counters$inf / results.bka$M$counters$n),
+        ##cbind(results.b$M$custom$ht.cn, results.bka$M$custom$ht.cn),
+        main="Infection", ylab="", xlab=expression(p[c]),
+        log.take="x")
+
 
   if (plot)
     dev.off()
