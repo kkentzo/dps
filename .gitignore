@@ -7,3 +7,4 @@ dps
 *.pdf
 populations
 .DS_Store
+*.dSYM

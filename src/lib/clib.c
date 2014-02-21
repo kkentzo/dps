@@ -182,6 +182,27 @@ int icmp_desc(const void *e1, const void *e2) {
 
 
 
+struct qsort_data_t {
+  void *array;
+  size_t size;
+  int (*cmp)(const void *, const void *);
+};
+
+
+int _qsort_cmp_(void *data, const void *e1, const void *e2) {
+
+  struct qsort_data_t *qd = data;
+
+  int i1 = *(int *)e1;
+  int i2 = *(int *)e2;
+
+  return qd->cmp((const void *)(qd->array + i1 * qd->size),
+		 (const void *)(qd->array + i2 * qd->size));
+	
+}
+
+
+
 // sort the ARRAY (of length N - each element has size SIZE)
 // the CMP function applies to the elements of ARRAY
 // the function sorts the array's indices as well,
@@ -190,18 +211,13 @@ int icmp_desc(const void *e1, const void *e2) {
 void qsort_w_indices(void *array, int *ind, size_t n, size_t size,
 		     int (*cmp)(const void *, const void *)) {
 
-  int _cmp_(const void *e1, const void *e2) {
-
-    int i1 = *(int *)e1;
-    int i2 = *(int *)e2;
-
-    return cmp((const void *)(array + i1 * size),
-	       (const void *)(array + i2 * size));
-	
-  }
+  struct qsort_data_t qsort_data;
+  qsort_data.array = array;
+  qsort_data.size = size;
+  qsort_data.cmp = cmp;
 
   // sort the ind array
-  qsort(ind, n, sizeof(int), _cmp_);
+  qsort_r(ind, n, sizeof(int), &qsort_data, _qsort_cmp_);
 
   // copy the array in buf
   void *buf = malloc(n * size);
@@ -1049,6 +1065,31 @@ GPtrArray *g_string_split(GString *st, const char sep) {
 
 
 
+GString *get_next_token(GString *st, int *pos) {
+	
+  int ctr=0;
+  char ch;
+  // create token
+  GString *token = g_string_new(NULL);
+
+  while ( (*pos) < st->len - 1 ) {
+    ch = st->str[*pos];
+    if (ch == '(')
+      ctr += 1;
+    if (ch == ')')
+      ctr -= 1;
+    g_string_append_c(token, ch);
+    (*pos)++;
+    if (ctr == 0 && isspace(ch)) 
+      return g_string_rstrip(token);
+  }
+
+  return g_string_rstrip(token);
+
+}
+
+
+
 // tokenize a string (C version)
 // returns an array of GString pointers (tokens) by parsing the nested list
 // eg tokenize('((a b) (c d) foo)')
@@ -1057,28 +1098,6 @@ GPtrArray *g_string_split(GString *st, const char sep) {
 // g_ptr_array_free_with_func(ARRAY_NAME, g_string_free_func);
 GPtrArray *g_string_tokenize(GString *st) {
 
-  GString *get_next_token(int *pos) {
-	
-    int ctr=0;
-    char ch;
-    // create token
-    GString *token = g_string_new(NULL);
-
-    while ( (*pos) < st->len - 1 ) {
-      ch = st->str[*pos];
-      if (ch == '(')
-	ctr += 1;
-      if (ch == ')')
-	ctr -= 1;
-      g_string_append_c(token, ch);
-      (*pos)++;
-      if (ctr == 0 && isspace(ch)) 
-	return g_string_rstrip(token);
-    }
-
-    return g_string_rstrip(token);
-
-  }
 
   // check that the supplied string begins and ends with a parenthesis
   if (st->len <= 2)
@@ -1092,7 +1111,7 @@ GPtrArray *g_string_tokenize(GString *st) {
   // initialize the position
   int pos = 1; // ignore the opening parenthesis
   while (pos < st->len - 1) { // ignore the closing parenthesis
-    g_ptr_array_add(tokens, get_next_token(&pos));
+    g_ptr_array_add(tokens, get_next_token(st, &pos));
   }
 
   return tokens;
