@@ -6,6 +6,8 @@ tryCatch(suppressWarnings(source('dps.r')), error=function(e) source('R/dps.r'))
 
 ## === use the following files for results ===
 
+## *** there also exist the files results.new.xdr in /data/dpsm/{htg,htg.beta}
+## *** use them for the relatedness decomposition and the histograms
 load.results.b <- function() dps.pp.load('/data/dpsm/htg.beta/results.xdr')
 load.results.bka <- function() dps.pp.load('/data/dpsm/htg/results.xdr')
 load.results.comp <- function() 
@@ -70,6 +72,67 @@ plot.fig1 <- function(results.b, results.bka, plot=F) {
 }
 
 
+
+
+
+## ===========================================================================
+## plots copy number distributions
+plot.fig1.dists <- function(results.b.new, results.bka.new, plot=F) {
+
+  if (plot)
+    pdf("fig1dists.pdf", width=8, height=4)
+
+  calc.cn.hists <- function(results) {
+    x <- 0.5 + results$histograms[[1]]$cn$x
+    y <- t(Reduce(rbind,
+                  lapply(results$histograms,
+                         function(h) apply(h$cn$y, 2, sum)),
+                  init=NULL))
+    ## take the column sums for calculating probabilities
+    denom <- matrix(rep(colSums(y), nrow(y)), ncol=ncol(y), byrow=T)
+    list(pconj=results$pconj,
+         x=x,
+         y=y / denom,
+         m=x %*% (y / denom))
+  }
+
+  layout(matrix(1:2, nrow=1, byrow=F))
+  
+  ## plot NO-CNC histograms
+  r <- calc.cn.hists(results.b.new)
+  print(r$pconj)
+  print(r$m)
+  print(results.b.new$M$custom$div.inf - results.b.new$M$custom$death)
+  colors <- colorRampPalette(c("blue", "red"))(ncol(r$y))
+  par(mar=c(4,4,3,0))
+  mplot(log10(r$x), r$y,
+        main="NO-CNC",
+        ylab=expression(P(n)), 
+        xlab=expression(n), ylim=c(0,0.12),
+        xaxt='n', yaxt='n', 
+        col=colors)
+  decorate.log("x")
+  axis(2, at=seq(0, 0.12, 0.04))
+  abline(v=log10(7), lty="dashed")
+
+  ## plot CNC histograms
+  r <- calc.cn.hists(results.bka.new)
+  par(mar=c(4,2,3,2))
+  mplot(log10(r$x), r$y,
+        main="CNC",
+        xlab=expression(n), ylim=c(0,0.12),
+        xaxt='n', yaxt='n', 
+        col=colors, mar=c(5,3,4,2))
+  decorate.log("x")
+  axis(2, at=seq(0, 0.12, 0.04), labels=NA)
+  abline(v=log10(7), lty="dashed")
+
+  if (plot)
+    dev.off()
+
+  layout(matrix(1))
+  
+}
 
 
 
@@ -181,6 +244,8 @@ plot.fig3 <- function(results.b, results.bka, plot=F) {
 
 
 
+## this function needs the results.new.xdr files located in
+## /data/dpsm/{htg,htg.beta}/
 plot.fig3r <- function(results.b.new, results.bka.new, plot=F) {
 
   layout(matrix(1))
@@ -378,7 +443,7 @@ plot.fig4b <- function(results.b, plot=F) {
 ## ==================================================================================
 ## plot the intra-cellular covariances of (beta,alpha) and (kappa, alpha)
 ## as a function of pconj
-plot.fig5 <- function( results ) {
+plot.fig5 <- function( results, plot=F ) {
 
   if (plot)
     pdf("fig8.pdf", width=8, height=5)

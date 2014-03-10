@@ -1346,7 +1346,8 @@ dps.pp.experiment.parallel <- function( path, cores ) {
                         ht.n=array(NA, runs),
                         loss.cn=array(NA, runs),
                         loss.n=array(NA, runs),
-                        inf=array(NA, runs)))
+                        inf=array(NA, runs)),
+                    histograms=list())
 
     
     for (i.run in 1:runs) {
@@ -1393,6 +1394,7 @@ dps.pp.experiment.parallel <- function( path, cores ) {
       results$custom$inf[i.run] <- mean(r$dynamics$counters$inf[seq.steps]
                                         / r$dynamics$counters$n[seq.steps], na.rm=T)
 
+      
       ## process COUNTERS
       for (name in names(r$dynamics$counters)) {
         ## initialize array (for i.run==1)??
@@ -1458,6 +1460,19 @@ dps.pp.experiment.parallel <- function( path, cores ) {
                      na.rm=T)
           }
 
+      ## process HISTOGRAMS
+      for (name in names(r$histograms)) {
+        if (is.null(results$histograms[[name]]))
+          results$histograms[[name]] <- r$histograms[[name]]
+        else if ("z" %in% names(results$histograms[[name]]))
+          results$histograms[[name]]$z <-
+            results$histograms[[name]]$z + r$histograms[[name]]$z
+        else
+          results$histograms[[name]]$y <-
+            results$histograms[[name]]$y + r$histograms[[name]]$y
+      }
+      
+
       ## remove results from memory
       rm(r)
       
@@ -1468,6 +1483,7 @@ dps.pp.experiment.parallel <- function( path, cores ) {
                             drelatedness=list(), custom=list()),
                         S=list(counters=list(), relatedness=list(),
                             drelatedness=list(), custom=list()),
+                        histograms=results$histograms,
                         pconj.values=pconj.values)
 
     ## aggregate the results into results.agg
@@ -1574,13 +1590,17 @@ dps.pp.experiment.parallel <- function( path, cores ) {
 
     ## === AGGREGATE RESULTS ===
 
+    histograms <- list(results[["1"]]$histograms)
+
     for (i.pconj in 2:len.pconj) {
       ## print value of i.pconj
       print(sprintf("i=%d", i.pconj))
       ## first, the PCONJ.VALUES
       results[["1"]]$pconj.values <- c(results[["1"]]$pconj.values,
                                        results[[as.character(i.pconj)]]$pconj.values)
-      ## second, the LEVELS (counters, global, inter, intra, relatedness)
+      ## second, store the HISTOGRAMS
+      histograms[[i.pconj]] <- results[[as.character(i.pconj)]]$histograms
+      ## third, the LEVELS (counters, global, inter, intra, relatedness)
       for (level in names(results[["1"]]$M)) {
         
         if (level == "counters" || level == "custom") {
@@ -1620,7 +1640,6 @@ dps.pp.experiment.parallel <- function( path, cores ) {
               }
             }
           }
-          
         } else {
 
           for (stat in names(results[["1"]]$M[[level]]))
@@ -1636,6 +1655,9 @@ dps.pp.experiment.parallel <- function( path, cores ) {
         }
       }
     }
+    ## replace the histograms in the first element
+    ## with the aggregated list
+    results[["1"]]$histograms <- histograms
   }
   
   ## form results
@@ -2245,6 +2267,10 @@ process.relatedness.adhoc <- function(path="relatedness") {
   }
   
 }
+
+
+
+
 
 
 
