@@ -105,6 +105,8 @@ plot.fig1.dists <- function(results.b.new, results.bka.new, plot=F) {
   }
 
   layout(matrix(1:2, nrow=1, byrow=F))
+
+  par.bak <- par(no.readonly=T)
   
   ## plot NO-CNC histograms
   r <- calc.cn.hists(results.b.new)
@@ -139,6 +141,8 @@ plot.fig1.dists <- function(results.b.new, results.bka.new, plot=F) {
     dev.off()
 
   layout(matrix(1))
+
+  par(par.bak)
   
 }
 
