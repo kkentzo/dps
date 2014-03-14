@@ -4,6 +4,14 @@ tryCatch(suppressWarnings(source('dps.r')), error=function(e) source('R/dps.r'))
 ## EPS plotting :
 ## setEPS(); postscript("fname.eps"); plot(); dev.off()
 
+## ========================================================
+##                   INSTRUCTIONS
+## generate the pdfs and place in $DPSM_PAPER_PATH/figures/
+## "The invasion of cis-selfish mutants" figure is composed
+## of two separate figures which should be joined using
+## inkscape
+## ========================================================
+
 ## === use the following files for results ===
 
 ## *** there also exist the files results.new.xdr in /data/dpsm/{htg,htg.beta}

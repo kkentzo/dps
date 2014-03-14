@@ -2,10 +2,15 @@
 tryCatch(suppressWarnings(source('dps.r')),
          error=function(e) source('R/dps.r'))
 
-
-
 ## EPS plotting :
 ## setEPS(); postscript("fname.eps"); plot(); dev.off()
+
+## ================================================================
+##                 INSTRUCTIONS
+## generate the pdfs and place in $PRICE_PAPER_PATH/fig.pdf/
+## use gimp on each pdf and export to png (using default settings)
+## place pngs in $PRICE_PAPER_PATH/figures/
+## ================================================================
 
 ## ===========================================
 ## === use the following files for results ===
