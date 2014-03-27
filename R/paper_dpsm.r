@@ -58,8 +58,9 @@ plot.fig1 <- function(results.b, results.bka, plot=F) {
         main="Host Copy Number", xlab=expression(p[c]), ylab="",
         log.take="x", col=c("blue", "red"))
   ##abline(v=log10(pconj.opt), h=results.b$M$custom$cn[pconj.opt.idx])
-  legend("topleft", c("NO-CNC", "CNC"),
-         lwd=1, col=c("blue", "red"))
+  abline(h=7, lty="dashed")
+  ## legend("topleft", c("NO-CNC", "CNC"),
+  ##        lwd=1, col=c("blue", "red"))
 
   mplot(x, cbind(results.b$M$custom$div.inf - results.b$M$custom$death,
                  results.bka$M$custom$div.inf - results.bka$M$custom$death),
@@ -90,7 +91,10 @@ plot.fig1.dists <- function(results.b.new, results.bka.new, plot=F) {
   if (plot)
     pdf("fig1dists.pdf", width=8, height=4)
 
-  calc.cn.hists <- function(results) {
+  n.val <- length(results.b.new$pconj.values)
+
+  calc.cn.hists <- function(results, take=seq(2,n.val,2)) {
+
     x <- 0.5 + results$histograms[[1]]$cn$x
     y <- t(Reduce(rbind,
                   lapply(results$histograms,
@@ -98,10 +102,10 @@ plot.fig1.dists <- function(results.b.new, results.bka.new, plot=F) {
                   init=NULL))
     ## take the column sums for calculating probabilities
     denom <- matrix(rep(colSums(y), nrow(y)), ncol=ncol(y), byrow=T)
-    list(pconj=results$pconj,
+    list(pconj=results$pconj.values,
          x=x,
-         y=y / denom,
-         m=x %*% (y / denom))
+         y=(y / denom)[,take],
+         m=(x %*% (y / denom))[take])
   }
 
   layout(matrix(1:2, nrow=1, byrow=F))
@@ -109,11 +113,8 @@ plot.fig1.dists <- function(results.b.new, results.bka.new, plot=F) {
   par.bak <- par(no.readonly=T)
   
   ## plot NO-CNC histograms
-  r <- calc.cn.hists(results.b.new)
-  print(r$pconj)
-  print(r$m)
-  print(results.b.new$M$custom$div.inf - results.b.new$M$custom$death)
-  colors <- colorRampPalette(c("blue", "red"))(ncol(r$y))
+  r <- calc.cn.hists(results.b.new, take=c(1,seq(2,30,2)))
+  colors <- colorRampPalette(c("blue", "red"), interpolate="spline")(ncol(r$y))
   par(mar=c(4,4,3,0))
   mplot(log10(r$x), r$y,
         main="NO-CNC",
@@ -126,7 +127,8 @@ plot.fig1.dists <- function(results.b.new, results.bka.new, plot=F) {
   abline(v=log10(7), lty="dashed")
 
   ## plot CNC histograms
-  r <- calc.cn.hists(results.bka.new)
+  r <- calc.cn.hists(results.bka.new, take=c(1,seq(2,30,2)))
+  colors <- colorRampPalette(c("blue", "red"), interpolate="spline")(ncol(r$y))
   par(mar=c(4,2,3,2))
   mplot(log10(r$x), r$y,
         main="CNC",
@@ -154,23 +156,35 @@ plot.fig1.dists <- function(results.b.new, results.bka.new, plot=F) {
 plot.fig2 <- function(results.b, results.bka, plot=F) {
 
   if (plot)
-    pdf("fig2.pdf", width=8, height=3)
+    pdf("fig2.pdf", width=8, height=8)
 
-  layout(matrix(1:3, nrow=1))
+  layout(matrix(1:4, nrow=2, byrow=T))
 
+  ##par.bak <- par(no.readonly=T)
+  ##par(mar=0.1 + c(5, 4, 3, 2)) ## (b,l,t,r)
+
+  ## plot rep rate
   mplot(cbind(results.b$pconj, results.bka$pconj),
         cbind(results.b$M$custom$rep.cn, results.bka$M$custom$rep.cn),
-        main="Replication Rate", ylab="", xlab=expression(p[c]),
+        main="Replication Rate", ylab="", ##xlab=expression(p[c]),,
         log.take="x")
-  legend("topleft", c("NO-CNC", "CNC"),
-         lwd=1, col=c("blue", "red"))
 
+  ## plot conj rate
+  mplot(cbind(results.b$pconj, results.bka$pconj),
+        cbind(results.b$M$custom$ht.cn, results.bka$M$custom$ht.cn),
+        main="Migration Rate", ylab="", ##xlab=expression(p[c]),
+        log.take="x")
+
+  ##par(mar=0.1 + c(3, 4, 2, 2)) ## (b,l,t,r)
+
+  ## plot seg loss
   mplot(cbind(results.b$pconj, results.bka$pconj),
         cbind(results.b$M$custom$loss.cn, results.bka$M$custom$loss.cn),
         main="Segregation Loss", xlab=expression(p[c]), ylab="",
         log.take="xy", col=c("blue", "red"))
   
 
+  ## plot infection
   mplot(cbind(results.b$pconj, results.bka$pconj),
         cbind(results.b$M$counters$inf / results.b$M$counters$n,
               results.bka$M$counters$inf / results.bka$M$counters$n),
@@ -182,8 +196,10 @@ plot.fig2 <- function(results.b, results.bka, plot=F) {
   if (plot)
     dev.off()
 
+  ##par(par.bak)
+
   layout(matrix(1))
-  
+
 }
 
 
@@ -198,11 +214,11 @@ plot.fig2 <- function(results.b, results.bka, plot=F) {
 plot.fig3 <- function(results.b, results.bka, plot=F) {
 
   if (plot)
-    pdf("fig3.pdf", width=8, height=6)
+    pdf("fig3.pdf", width=10, height=5)
 
-  layout(matrix(c(rep(1,3), 2:4), nrow=2, byrow=T))
+  layout(matrix(1:2, nrow=1))
 
-  ## plot beta, kappa, alpha
+  ## === plot plasmid replication parameters ===
   mplot(results.bka$pconj,
         cbind(results.bka$M$global$M$beta,
               results.bka$M$global$M$kappa,
@@ -212,11 +228,7 @@ plot.fig3 <- function(results.b, results.bka, plot=F) {
   legend("left", c(expression(beta), expression(kappa), expression(alpha)),
          lwd=1, box.lwd=0, col=c("blue", "red", "green"))
 
-  ## mplot(results.b$pconj,
-  ##       results.b$M$global$M$beta,
-  ##       main="", xlab=expression(p[c]),
-  ##       log.take="x")
-
+  ## === plot plasmid relatedness ===
   var.names <- c("beta", "kappa", "alpha")
 
   ## form data frames
@@ -227,30 +239,20 @@ plot.fig3 <- function(results.b, results.bka, plot=F) {
   names(r.nocnc.mean) <- var.names
   names(r.cnc.mean) <- var.names
 
-  for (var.name in var.names) {
-
-    main <- switch(var.name,
-                   beta=expression(paste("Relatedness (", beta, ")")),
-                   kappa=expression(paste("Relatedness (", kappa, ")")),
-                   alpha=expression(paste("Relatedness (", alpha, ")")))
-
-
-    mplot(cbind(results.b$pconj, results.bka$pconj),
-          cbind(r.nocnc.mean[[var.name]], r.cnc.mean[[var.name]]),
-          xlab=expression(p[c]), ylab="", type="l",
-          log.take="x", col=c("blue", "red"), main=main)
-
-    if (var.name == "beta") {
-      legend("bottomleft", c("NO-CNC", "CNC"),
-             lwd=1, col=c("blue", "red"))
-    }
-  }
+  mplot(results.b$pconj,
+        cbind(r.nocnc.mean$beta,
+              r.cnc.mean$beta,
+              r.cnc.mean$kappa,
+              r.cnc.mean$alpha),
+        xlab=expression(p[c]), ylab="",
+        ltype=c("dashed", rep("solid", 3)),
+        col=c(rep("blue", 2), "red", "green"),
+        log.take="x", main="Plasmid Relatedness")
 
   if (plot)
     dev.off()
 
   layout(matrix(1))
-  
 
 }
 
@@ -557,46 +559,3 @@ plot.fig6 <- function(results.comp, plot=F) {
     dev.off()
 
 }
-
-
-
-
-
-## ## plots the results of the comp BA and KA experiments
-## plot.fig6 <- function(results.comp) {
-
-##   ba <- results.comp$ba
-##   ka <- results.comp$ka
-
-##   ## PLOT BETA-ALPHA
-##   grid <- expand.grid(x=ba$x.values, y=ba$y.values)
-##   grid$z <- as.vector(ba$mut.wins)
-
-##   p1 <- levelplot(z ~ x*y, grid,
-##                   xlab=expression(beta), ylab=expression(alpha),
-##                   colorkey=F, interpolate=T, useRaster=T,
-##                   panel=function(...) {
-##                     panel.levelplot.raster(...)
-##                     panel.abline(v=0.4, h=0.9)
-##                   },
-##                   col.regions=colorpanel(20, "white", "red"),
-##                   xlim=c(0.30, 0.50), ylim=c(0.80, 1))
-##   ## PLOT KAPPA-ALPHA
-##   grid <- expand.grid(x=ka$x.values, y=ka$y.values)
-##   grid$z <- as.vector(ka$mut.wins)
-##   p2 <- levelplot(z ~ x*y, grid,
-##                   xlab=expression(kappa), ylab="",
-##                   colorkey=T, interpolate=T, useRaster=T,
-##                   col.regions=colorpanel(20, "white", "red"),
-##                   xlim=c(0.8, 1), ylim=c(0.80, 1))
-  
-##   ##panel = panel.levelplot.raster
-  
-##   ##levels=levels, nlevels=nlevels,
-##   ##col=colorpanel(length(levels), "white", "red",))
-##   print(p1, position=c(0, 0, 0.5, 1), more=T)
-##   print(p2, position=c(0.5, 0, 1, 1))
-
-##   ##layout(matrix(1))
-
-## }
