@@ -54,62 +54,6 @@ dps.save <- function( results, fname ) {
 
 
 
-## =================================================================
-## return a single data object containing the aggregate of all
-## h5 files in the directory PATH
-dps.aggregate <- function( path ) {
-
-  fnames <- Sys.glob(file.path(path, "results.*.h5"))
-
-  ## load the first of the files
-  results <- dps.load( fnames[1] )
-
-  for (fname in fnames[2:length(fnames)]) {
-
-    r <- dps.load(fname)
-
-    ## add values to dynamics
-    results$dynamics$counters <- results$dynamics$counters + r$dynamics$counters
-
-    for (level in c("global", "inter", "intra"))
-      for (tp in c("M", "V", "C")) {
-
-        results$dynamics[[level]][[tp]] <-
-          results$dynamics[[level]][[tp]] +
-            r$dynamics[[level]][[tp]]
-
-      }
-    
-    ## add values to histograms
-    results$histograms$cn$y <- results$histograms$cn$y + r$histograms$cn$y
-    results$histograms$ba$z <- results$histograms$ba$z + r$histograms$ba$z
-
-    rm(r)
-
-  }
-
-  ## normalize dynamics
-  results$dynamics$counters <- results$dynamics$counters / length(fnames)
-  
-  for (level in c("global", "inter", "intra"))
-    for (tp in c("M", "V", "C")) {
-
-      results$dynamics[[level]][[tp]] <-
-        results$dynamics[[level]][[tp]]  / length(fnames)
-    }
-  
-  results
-  
-}
-
-
-
-
-
-
-
-
-
 
 
 ## =================================================================
@@ -119,8 +63,10 @@ dps.aggregate <- function( path ) {
 
 
 ## =================================================================
-## calculates and returns the correlation coefficient of the pair
-## of variables specified by NAMES
+## calculates and returns the association between the pair of
+## variables specified by NAMES
+## NORM.BY will divide the result by the variance of none, one 
+## or both components (for "xy" the correlation coefficient is computed)
 ## DYNAMICS should be either the global, inter or intra data frames
 ## STEPS.RANGE should be a 2-tuple
 dps.calc.association <- function( dynamics, names, norm.by="xy", plot=F, steps.range=NA ) {
