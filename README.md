@@ -144,6 +144,7 @@ split in four groups
       group. For example, if the `M` subgroup has the columns "a", "b"
       and "c", then the `C` subgroup will have the columns "a.b",
       "a.c" and "b.c" with the corresponding covariances.
+
       The `M` subgroup of the `intra` and `global` members has the
       following columns:
         * `cn` : average per-host copy number
@@ -156,6 +157,7 @@ split in four groups
 		* `fitness` : average value of plasmid fitness
 		* `t{beta,kappa,alpha}` : transmission biases of the plasmid
         replication parameters
+
       The `M` subgroup of the `inter` member has the following
       columns:
         * `domg` : the average value of ΔΩ across hosts
@@ -205,7 +207,7 @@ follows:
       form `(PROF1 PROF2 ... PROFN)`, i.e. a sequence of individual
       profile strings enclosed within parentheses. 
 
-   * `hosts` : specifies all the hosts in the population along with
+    * `hosts` : specifies all the hosts in the population along with
      their contained plasmids. A single host is specified by the
      string `(OMEGA OMEGA_0 AGE X X PLASMID_POOL)`, where the
      `PLASMID_POOL` enumerates all the distinct plasmid profiles in
