@@ -117,19 +117,20 @@ split in four groups
     * `counters` : records the numbers of various events (such as
       population size, total copy number, division events etc.) for
       each time step in the simulation and has the following columns:
-	  * `n` : the number of hosts in the population
-	  * `cn` : the total number of plasmids across all hosts
-	  * `inf` : the number of plasmid-infected hosts
-	  * `ptypes` : the number of distinct plasmid types in the population
-	  * `loss` : the number of segregational losses across cell
+
+        * `n` : the number of hosts in the population
+		* `cn` : the total number of plasmids across all hosts
+		* `inf` : the number of plasmid-infected hosts
+		* `ptypes` : the number of distinct plasmid types in the population
+		* `loss` : the number of segregational losses across cell
         division events
-      * `div.inf` : the number of division events of plasmid-infected
+		* `div.inf` : the number of division events of plasmid-infected
         hosts
-      * `div` : the number of division events of all hosts
-	  * `death` : the number of host deaths
-	  * `rep` : the number of plasmid replication events
-	  * `ht` : the number of horizontal transmission events
-	  * `mut` : the number of mutation events
+		* `div` : the number of division events of all hosts
+		* `death` : the number of host deaths
+		* `rep` : the number of plasmid replication events
+		* `ht` : the number of horizontal transmission events
+		* `mut` : the number of mutation events
 
 	
     * `intra`, `inter` and `global` : these contains descriptive
@@ -143,27 +144,25 @@ split in four groups
       group. For example, if the `M` subgroup has the columns "a", "b"
       and "c", then the `C` subgroup will have the columns "a.b",
       "a.c" and "b.c" with the corresponding covariances.
-
       The `M` subgroup of the `intra` and `global` members has the
       following columns:
-	  * `cn` : average per-host copy number
-	  * `beta`, `kappa`, `alpha` : average values of the plasmid
+        * `cn` : average per-host copy number
+		* `beta`, `kappa`, `alpha` : average values of the plasmid
         replication parameters
-      * `nr` : average number of plasmid replication events per host
-	  * `ht` : average number of horizontal transmission events per
+		* `nr` : average number of plasmid replication events per host
+		* `ht` : average number of horizontal transmission events per
         host
-      * `death` : average number of plasmid deaths per host
-	  * `fitness` : average value of plasmid fitness
-	  * `t{beta,kappa,alpha}` : transmission biases of the plasmid
+		* `death` : average number of plasmid deaths per host
+		* `fitness` : average value of plasmid fitness
+		* `t{beta,kappa,alpha}` : transmission biases of the plasmid
         replication parameters
-
       The `M` subgroup of the `inter` member has the following
       columns:
-	  * `domg` : the average value of ΔΩ across hosts
-	  * `cn` : the average plasmid copy number per host
-	  * `dev` : the average deviation of the host's copy number from
+        * `domg` : the average value of ΔΩ across hosts
+		* `cn` : the average plasmid copy number per host
+		* `dev` : the average deviation of the host's copy number from
         the optimal copy number
-      * `beta`, `kappa`, `alpha`, `nr`, `ht`, `death`, `fitness`
+		* `beta`, `kappa`, `alpha`, `nr`, `ht`, `death`, `fitness`
         `t{beta,kappa,alpha}` : see above (in this case per-host
         averages)
 
