@@ -144,9 +144,8 @@ split in four groups
       group. For example, if the `M` subgroup has the columns "a", "b"
       and "c", then the `C` subgroup will have the columns "a.b",
       "a.c" and "b.c" with the corresponding covariances.
-
-      The `M` subgroup of the `intra` and `global` members has the
-      following columns:
+      The `M` subgroup of the `intra` and `global` members has the following
+      columns:
         * `cn` : average per-host copy number
 		* `beta`, `kappa`, `alpha` : average values of the plasmid
         replication parameters
@@ -156,10 +155,8 @@ split in four groups
 		* `death` : average number of plasmid deaths per host
 		* `fitness` : average value of plasmid fitness
 		* `t{beta,kappa,alpha}` : transmission biases of the plasmid
-        replication parameters
-
-      The `M` subgroup of the `inter` member has the following
-      columns:
+        replication parameters.
+		The `M` subgroup of the `inter` member has the following columns:
         * `domg` : the average value of ΔΩ across hosts
 		* `cn` : the average plasmid copy number per host
 		* `dev` : the average deviation of the host's copy number from
