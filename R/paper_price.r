@@ -19,8 +19,11 @@ tryCatch(suppressWarnings(source('dps.r')),
 ## load the results object
 price.load.results <- function(fname="/data/dps/bka/results.h5") dps.load(fname)
 
-## load the DZ objec
-price.load.dz <- function(fname="/data/dps/bka/dz.xdr") dps.load.price(fname)
+## load the DZ object
+price.load.dz <- function(fname="/data/dps/bka/dz.50k.xdr") {
+  load(fname)
+  dz.50k
+}
 
 
 ## ===========================================================================
@@ -165,20 +168,43 @@ price.plot.fig3 <- function(dz, plot=F ) {
   if (plot)
     pdf("fig3.pdf", w=6, h=6)
 
-  layout(matrix(1))
+  layout(matrix(1:3, nrow=1))
 
-  ## plot plasmid rep rate
+  ## plot relatedness
   mplot(Reduce(cbind,
                lapply(c("beta", "kappa", "alpha"),
                       function(z.name) dz[[z.name]]$r$cov / dz[[z.name]]$r$var),
                init=NULL),
-        ylab="Relatedness", xlab="Evolutionary Time",
-        xaxt='n', yaxt='n', ylim=c(0.7, 1))
-
+        main="Relatedness", xlab="Evolutionary Time",
+        xaxt='n', yaxt='s')
   ## mark the time ticks properly
   xticks.at <- 10000 * seq(0, 100, 25)
   axis(1, at=xticks.at)
-  axis(2, at=seq(0.7,1,0.1))
+  ##axis(2, at=seq(0.7,1,0.1))
+
+  ## plot covariance
+  mplot(Reduce(cbind,
+               lapply(c("beta", "kappa", "alpha"),
+                      function(z.name) dz[[z.name]]$r$cov),
+               init=NULL),
+        main="Covariance", xlab="Evolutionary Time",
+        xaxt='n', yaxt='s', log.take="y", ylim=c(-5, log10(2e-3)))
+  ## mark the time ticks properly
+  xticks.at <- 10000 * seq(0, 100, 25)
+  axis(1, at=xticks.at)
+  ##axis(2, at=seq(0.7,1,0.1))
+
+  ## plot variance
+  mplot(Reduce(cbind,
+               lapply(c("beta", "kappa", "alpha"),
+                      function(z.name) dz[[z.name]]$r$var),
+               init=NULL),
+        main="Variance", xlab="Evolutionary Time",
+        xaxt='n', yaxt='s', log.take="y", ylim=c(-5, log10(2e-3)))
+  ## mark the time ticks properly
+  xticks.at <- 10000 * seq(0, 100, 25)
+  axis(1, at=xticks.at)
+  ##axis(2, at=seq(0.7,1,0.1))
   
       
   if (plot)

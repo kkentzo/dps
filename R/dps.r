@@ -818,55 +818,48 @@ dps.plot.price.components <- function(results, dz, steps.range=NA) {
 
 ## =========================================================================
 ## plot the relatedness components (SORTED BY EVOLUTIONARY VARIABLES)
-## DZ can be either the output of dps.calc.price() or a results objects
-dps.plot.relatedness <- function( results, dz=NULL, window.size=0, 
-                                 steps.range=NA, xlim=NA, bw.adjust=1 ) {
+dps.plot.relatedness <- function( dz ) {
 
-  layout(rbind(rep(1,3), matrix(2:4, ncol=3)))
+  layout(matrix(1:3, nrow=1))
 
-  ## calculate relatedness components??
-  if (is.null(dz))
-    dz <- dps.calc.price(results, window.size, steps.range=NA, relatedness=T)
+  ## plot beta
+  mplot(cbind(dz$beta$r$cov, dz$beta$r$var),
+        xlab="Time", ylab="", main="beta", log.take="y")
+  ## plot kappa
+  mplot(cbind(dz$kappa$r$cov, dz$kappa$r$var),
+        xlab="Time", ylab="", main="kappa", log.take="y")
+  ## plot alpha
+  mplot(cbind(dz$alpha$r$cov, dz$alpha$r$var),
+        xlab="Time", ylab="", main="alpha", log.take="y")
 
-  ## calculate steps.range
-  if (length(steps.range) != 2) 
-    steps.range <- 1:nrow(dz$beta)
-  else
-    steps.range <- steps.range[1]:steps.range[2]
+  layout(matrix(1))
 
-  ## plot evolutionary dynamics of beta, kappa, alpha
-  plot.with.range(cbind(results$dynamics$global$M$beta[steps.range],
-                        results$dynamics$global$M$kappa[steps.range],
-                        results$dynamics$global$M$alpha[steps.range]),
-                  cbind(sqrt(results$dynamics$global$V$beta[steps.range]),
-                        sqrt(results$dynamics$global$V$kappa[steps.range]),
-                        sqrt(results$dynamics$global$V$alpha[steps.range])),
-                  x=steps.range,
-                  main="Plasmid Replication Parameters",
-                  col=c("blue", "red", "green"),
-                  xlab="Time", ylab="")
-  legend("topleft", c(expression(beta), expression(kappa), expression(alpha)),
-         lwd=1, col=c("blue", "red", "green"))
+}
 
 
+## =========================================================================
+## plot the relatedness components (SORTED BY RELATEDNESS COMPONENTS)
+dps.plot.relatedness2 <- function( dz ) {
 
-  ## PLOT RELATEDNESS FOR EACH VARIABLE
-  for (name in c("beta", "kappa", "alpha")) {
+  layout(matrix(1:3, nrow=1))
 
-    ## plot relatedness time series
-    mplot(steps.range,
-          cbind(dz[[name]]$r[steps.range],
-                dz[[name]]$r.wg[steps.range]),
-          main=sprintf("Relatedness (%s)", name),
-          xlab="Time", ylab="")
-    legend("bottomright", c("OO", "WG"),
-           lwd=1, col=c("blue", "red"))
+  ## plot relatedness
+  mplot(cbind(dz$beta$r$cov / dz$beta$r$var,
+              dz$kappa$r$cov / dz$kappa$r$var,
+              dz$alpha$r$cov / dz$alpha$r$var),
+        xlab="Evolutionary Time", ylab="", main="Relatedness")
 
-    print(sprintf("%s | OO=%.3e | WG=%.3e", name,
-                  mean(dz[[name]]$r[steps.range] ,na.rm=T),
-                  mean(dz[[name]]$r.wg[steps.range] ,na.rm=T)))
+  ## plot COV component
+  mplot(cbind(dz$beta$r$cov,
+              dz$kappa$r$cov,
+              dz$alpha$r$cov),
+        xlab="Evolutionary Time", ylab="", main="Covariance", log.take="y")
 
-  }
+  ## plot VAR component
+  mplot(cbind(dz$beta$r$var,
+              dz$kappa$r$var,
+              dz$alpha$r$var),
+        xlab="Evolutionary Time", ylab="", main="Variance", log.take="y")
 
   layout(matrix(1))
 
