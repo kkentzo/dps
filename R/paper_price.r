@@ -10,6 +10,8 @@ tryCatch(suppressWarnings(source('dps.r')),
 ## generate the pdfs and place in $PRICE_PAPER_PATH/fig.pdf/
 ## use gimp on each pdf and export to png (using default settings)
 ## place pngs in $PRICE_PAPER_PATH/figures/
+## **Figure 3 ** generate fig3.pdf and fig3_inset.pdf,
+##   open in gimp, paste inset into main figure and export to png
 ## ================================================================
 
 ## ===========================================
@@ -166,9 +168,9 @@ price.plot.fig2 <- function(dz, steps.range=NA, ##steps.range=c(2e5, 3e5),
 price.plot.fig3 <- function(dz, plot=F ) {
 
   if (plot)
-    pdf("fig3.pdf", w=6, h=6)
+    pdf("fig3.pdf", w=10, h=10)
 
-  layout(matrix(1:3, nrow=1))
+  layout(matrix(1))
 
   ## plot relatedness
   mplot(Reduce(cbind,
@@ -176,39 +178,61 @@ price.plot.fig3 <- function(dz, plot=F ) {
                       function(z.name) dz[[z.name]]$r$cov / dz[[z.name]]$r$var),
                init=NULL),
         main="Relatedness", xlab="Evolutionary Time",
-        xaxt='n', yaxt='s')
+        xaxt='n')##, yaxt='n')
   ## mark the time ticks properly
   xticks.at <- 10000 * seq(0, 100, 25)
   axis(1, at=xticks.at)
   ##axis(2, at=seq(0.7,1,0.1))
+      
+  if (plot)
+    dev.off()
+
+}
+
+
+## ===========================================================================
+## plot relatedness components (cov and var)
+## ==> paste into Fig3 using gimp and then convert to png
+price.plot.fig3.inset <- function(dz, plot=F ) {
+
+  if (plot)
+    pdf("fig3_inset.pdf", w=4.5, h=6.25)
+
+  par.bak <- par(no.readonly=T)
+
+  ##layout(matrix(1:3, nrow=1))
+  layout(matrix(1:2, nrow=2))
+
+  par(mar=c(2, 4, 1, 2) + 0.1)
 
   ## plot covariance
   mplot(Reduce(cbind,
                lapply(c("beta", "kappa", "alpha"),
                       function(z.name) dz[[z.name]]$r$cov),
                init=NULL),
-        main="Covariance", xlab="Evolutionary Time",
-        xaxt='n', yaxt='s', log.take="y", ylim=c(-5, log10(2e-3)))
+        ylab="Covariance", ##xlab="Evolutionary Time",
+        log.take="y", ylim=c(-5, log10(2e-3)),
+        xaxt='n')##, yaxt='n')
   ## mark the time ticks properly
   xticks.at <- 10000 * seq(0, 100, 25)
   axis(1, at=xticks.at)
-  ##axis(2, at=seq(0.7,1,0.1))
 
   ## plot variance
   mplot(Reduce(cbind,
                lapply(c("beta", "kappa", "alpha"),
                       function(z.name) dz[[z.name]]$r$var),
                init=NULL),
-        main="Variance", xlab="Evolutionary Time",
-        xaxt='n', yaxt='s', log.take="y", ylim=c(-5, log10(2e-3)))
+        ylab="Variance", ##xlab="Evolutionary Time",
+        log.take="y", ylim=c(-5, log10(2e-3)),
+        xaxt='n')##, yaxt='n'
   ## mark the time ticks properly
   xticks.at <- 10000 * seq(0, 100, 25)
   axis(1, at=xticks.at)
-  ##axis(2, at=seq(0.7,1,0.1))
-  
       
   if (plot)
     dev.off()
+
+  par(par.bak)
 
 }
 
