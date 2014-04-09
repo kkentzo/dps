@@ -1,3 +1,13 @@
+## ====================================================================
+## ====================================================================
+## Implements figure plotting for the following research paper:
+## K. Kentzoglanakis, S. P. Brown, and R. A. Goldstein. The evolution
+## of policing in genetically mixed groups enhances productivity and
+## relatedness through coercive control of neighbour reproduction.
+## ====================================================================
+## ====================================================================
+
+
 ## insert all our functions
 tryCatch(suppressWarnings(source('dps.r')), error=function(e) source('R/dps.r'))
 

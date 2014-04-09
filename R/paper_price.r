@@ -1,3 +1,13 @@
+## ====================================================================
+## ====================================================================
+## Implements figure plotting for the following research paper:
+## K. Kentzoglanakis, S. P. Brown, and R. A. Goldstein. Using the
+## Price equation to analyze multi-level selection on the reproductive
+## policing mechanism of bacterial plasmids
+## ====================================================================
+## ====================================================================
+
+
 ## insert all our functions
 tryCatch(suppressWarnings(source('dps.r')),
          error=function(e) source('R/dps.r'))

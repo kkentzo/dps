@@ -987,8 +987,8 @@ dps.plot.cn.hists <- function(results) {
 
 
 ## ==================================================================
-## CMD LINE FUNCTION : calls dps.analyze() and dps.plot.price() for all files in H5.PATH and
-## saves the generated png files in PNG.PATH
+## CMD LINE FUNCTION : calls dps.analyze() and dps.plot.price() for
+## all files in H5.PATH and saves the generated png files in PNG.PATH
 ## **multicore function : specify CORES **
 dps.plot.all.parallel <- function( h5.path, png.path, cores ) {
 
@@ -1947,56 +1947,6 @@ dps.pp.comp.plot <- function(results, metric="mut.wins") {
 ##                       AD-HOC FUNCTIONS
 ## ==================================================================
 ## ==================================================================
-
-
-
-ttest <- function() {
-
-  alpha <- seq(-0.5,0.5,0.01)
-  kappa <- seq(0,1,0.01)
-
-  beta <- 0.4
-
-  omega <- 1.5
-
-  r <- matrix(NA, nrow=length(alpha), ncol=length(kappa))
-
-  for (i in 1:length(alpha))
-    for (j in 1:length(kappa))
-      r[i,j] <- beta / (1. + kappa[j] * (3.5 + alpha[i]) / omega)
-
-  contour(kappa, alpha, r, xlab=expression(kappa), ylab=expression(alpha))
-
-  
-}
-
-
-
-tttest <- function() {
-
-  n <- 1000
-
-  kappa <- 0.3
-  alpha <- 0.6
-  
-  delta.alpha <- rnorm(n, 0, 0.05)
-  delta.kappa <- rnorm(n, 0, 0.05)
-
-  omega <- 1.5
-
-  f <- NULL
-
-  for (i in 1:n)
-
-    f <- c(f, 1. / (1. + ((kappa + delta.kappa[i]) * (7 * alpha + delta.alpha[i]) / omega)))
-
-
-  plot(delta.alpha, f)
-
-  print(cor(delta.alpha, f))
-  
-}
-
 
 
 
