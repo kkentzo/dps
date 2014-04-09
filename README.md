@@ -4,13 +4,13 @@ Agent-Based Plasmid Simulations
 ## OVERVIEW
 
 This program implements an evolutionary agent-based model of hosts and
-plasmids used in [a number of research papers](#publications). The
-model specifies the mechanics of the asynchronous growth, division and
-death of hosts in a bacterial population, the independent replication
-of plasmids within hosts and their horizontal transmission across
-hosts. The model is implemented by the program `dps` that is written
-in C; its source code is located in `src/`. Also provided are R
-scripts located in `R/` that deal with post-processing the output of
+plasmids used in a number of research papers (see Publications at the
+bottom). The model specifies the mechanics of the asynchronous growth,
+division and death of hosts in a bacterial population, the independent
+replication of plasmids within hosts and their horizontal transmission
+across hosts. The model is implemented by the program `dps` that is
+written in C; its source code is located in `src/`. Also provided are
+R scripts located in `R/` that deal with post-processing the output of
 `dps`, plotting etc.
 
 
@@ -142,7 +142,7 @@ split in four groups
       then the `C` subgroup will have the columns "a.b", "a.c" and
       "b.c" with the corresponding covariances.
 
-     The `M` subgroup of the `intra` and `global` members has the
+      The `M` subgroup of the `intra` and `global` members has the
       following columns:
         * `cn` : average per-host copy number
 		* `beta`, `kappa`, `alpha` : average values of the plasmid
@@ -156,7 +156,7 @@ split in four groups
 		* `t{beta,kappa,alpha}` : transmission biases of the plasmid
         replication parameters.
 
-     The `M` subgroup of the `inter` member has the following columns:
+      The `M` subgroup of the `inter` member has the following columns:
         * `domg` : the average value of ΔΩ across hosts
 		* `cn` : the average plasmid copy number per host
 		* `dev` : the average deviation of host copy number from the
@@ -269,7 +269,7 @@ research publications (consult the source code of these files for
 references to the actual publications).
 
 
-## PUBLICATIONS<a name="publications"></a>
+## PUBLICATIONS
 
 K. Kentzoglanakis, D. G. Lopez, S. P. Brown, and R. A. Goldstein. [The
 Evolution of Collective Restraint: Policing and Obedience among
