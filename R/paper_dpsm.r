@@ -25,25 +25,20 @@ tryCatch(suppressWarnings(source('dps.r')), error=function(e) source('R/dps.r'))
 ## === use the following files for results ===
 
 ## *** there also exist the files results.new.xdr in /data/dpsm/{htg,htg.beta}
-## *** use them for the relatedness decomposition and the histograms
-load.results.b <- function() dps.pp.load('/data/dpsm/htg.beta/results.xdr')
-load.results.bka <- function() dps.pp.load('/data/dpsm/htg/results.xdr')
+## *** use them for the histograms (figure 2)
+load.results.b <- function(new=F) {
+  if (new) dps.pp.load('/data/dpsm/htg.beta/results.new.xdr')
+  else dps.pp.load('/data/dpsm/htg.beta/results.xdr')
+}
+
+load.results.bka <- function(new=F) {
+  if (new) dps.pp.load('/data/dpsm/htg/results.new.xdr')
+  else dps.pp.load('/data/dpsm/htg/results.xdr')
+}
+
 load.results.comp <- function() 
   list(ba=dps.pp.comp.load("/data/dpsm/comp/ba/results.xdr"),
        ka=dps.pp.comp.load("/data/dpsm/comp/ka/results.xdr"))
-
-## save the results that were loaded using the above function
-## in a YAML format for use with Python's plot_comp() in dps.py
-## NOT IMPLEMENTED -- see plot.fig6() below
-save.results.comp <- function(results.comp, fname="results.comp.yaml") {
-
-  library(yaml)
-  st <- as.yaml(results.comp)
-  f <- file(fname)
-  writeLines(st, f)
-  close(f)
-  
-}
 
 
 ## ===========================================================================
@@ -63,9 +58,11 @@ plot.fig1 <- function(results.b, results.bka, plot=F) {
   ## find corresponding pconj value
   pconj.opt <- results.b$pconj[pconj.opt.idx]
 
+  xlab <- expression(paste("Migration rate (", p[c], ")"))
+
   mplot(x, cbind(results.b$M$custom$cn, results.bka$M$custom$cn),
         ##cbind(results.b$M$inter$M$cn, results.bka$M$inter$M$cn),
-        main="Host Copy Number", xlab=expression(p[c]), ylab="",
+        main="Group Size", xlab=xlab, ylab="",
         log.take="x", col=c("blue", "red"))
   ##abline(v=log10(pconj.opt), h=results.b$M$custom$cn[pconj.opt.idx])
   abline(h=7, lty="dashed")
@@ -74,13 +71,13 @@ plot.fig1 <- function(results.b, results.bka, plot=F) {
 
   mplot(x, cbind(results.b$M$custom$div.inf - results.b$M$custom$death,
                  results.bka$M$custom$div.inf - results.bka$M$custom$death),
-        main="Host Growth", xlab=expression(p[c]), ylab="",
+        main="Group Performance", xlab=xlab, ylab="",
         log.take="x", col=c("blue", "red"))
   ##abline(v=log10(pconj.opt))
 
   mplot(x, cbind(results.b$M$custom$death,
                  results.bka$M$custom$death),
-        main="Host Death", xlab=expression(p[c]), ylab="",
+        main="Group Mortality", xlab=xlab, ylab="",
         log.take="x", col=c("blue", "red"))
 
   if (plot)
@@ -96,10 +93,11 @@ plot.fig1 <- function(results.b, results.bka, plot=F) {
 
 ## ===========================================================================
 ## plots copy number distributions
-plot.fig1.dists <- function(results.b.new, results.bka.new, plot=F) {
+## *** NEEDS THE *.new RESULTS ***
+plot.fig2 <- function(results.b.new, results.bka.new, plot=F) {
 
   if (plot)
-    pdf("fig1dists.pdf", width=8, height=4)
+    pdf("fig2.pdf", width=8, height=4)
 
   n.val <- length(results.b.new$pconj.values)
 
@@ -127,7 +125,7 @@ plot.fig1.dists <- function(results.b.new, results.bka.new, plot=F) {
   colors <- colorRampPalette(c("blue", "red"), interpolate="spline")(ncol(r$y))
   par(mar=c(4,4,3,0))
   mplot(log10(r$x), r$y,
-        main="NO-CNC",
+        main="No Policing",
         ylab=expression(P(n)), 
         xlab=expression(n), ylim=c(0,0.12),
         xaxt='n', yaxt='n', 
@@ -141,7 +139,7 @@ plot.fig1.dists <- function(results.b.new, results.bka.new, plot=F) {
   colors <- colorRampPalette(c("blue", "red"), interpolate="spline")(ncol(r$y))
   par(mar=c(4,2,3,2))
   mplot(log10(r$x), r$y,
-        main="CNC",
+        main="With Policing",
         xlab=expression(n), ylim=c(0,0.12),
         xaxt='n', yaxt='n', 
         col=colors, mar=c(5,3,4,2))
@@ -163,10 +161,10 @@ plot.fig1.dists <- function(results.b.new, results.bka.new, plot=F) {
 
 ## ===========================================================================
 ## plots plasmid performance (rep, conj, seg loss)
-plot.fig2 <- function(results.b, results.bka, plot=F) {
+plot.fig3 <- function(results.b, results.bka, plot=F) {
 
   if (plot)
-    pdf("fig2.pdf", width=8, height=8)
+    pdf("fig3.pdf", width=8, height=8)
 
   layout(matrix(1:4, nrow=2, byrow=T))
 
@@ -176,13 +174,13 @@ plot.fig2 <- function(results.b, results.bka, plot=F) {
   ## plot rep rate
   mplot(cbind(results.b$pconj, results.bka$pconj),
         cbind(results.b$M$custom$rep.cn, results.bka$M$custom$rep.cn),
-        main="Replication Rate", ylab="", ##xlab=expression(p[c]),,
+        main="Plasmid Replication Rate", ylab="", ##xlab=expression(p[c]),,
         log.take="x")
 
   ## plot conj rate
   mplot(cbind(results.b$pconj, results.bka$pconj),
         cbind(results.b$M$custom$ht.cn, results.bka$M$custom$ht.cn),
-        main="Migration Rate", ylab="", ##xlab=expression(p[c]),
+        main="Plasmid Conjugation Rate", ylab="", ##xlab=expression(p[c]),
         log.take="x")
 
   ##par(mar=0.1 + c(3, 4, 2, 2)) ## (b,l,t,r)
@@ -190,7 +188,8 @@ plot.fig2 <- function(results.b, results.bka, plot=F) {
   ## plot seg loss
   mplot(cbind(results.b$pconj, results.bka$pconj),
         cbind(results.b$M$custom$loss.cn, results.bka$M$custom$loss.cn),
-        main="Segregation Loss", xlab=expression(p[c]), ylab="",
+        main="Segregation Loss", ylab="",
+        xlab=expression(paste("Migration rate (", p[c], ")")), 
         log.take="xy", col=c("blue", "red"))
   
 
@@ -199,7 +198,8 @@ plot.fig2 <- function(results.b, results.bka, plot=F) {
         cbind(results.b$M$counters$inf / results.b$M$counters$n,
               results.bka$M$counters$inf / results.bka$M$counters$n),
         ##cbind(results.b$M$custom$ht.cn, results.bka$M$custom$ht.cn),
-        main="Infection", ylab="", xlab=expression(p[c]),
+        main="Infection", ylab="", 
+        xlab=expression(paste("Migration rate (", p[c], ")")), 
         log.take="x")
 
 
@@ -221,10 +221,10 @@ plot.fig2 <- function(results.b, results.bka, plot=F) {
 
 ## ===========================================================================
 ## plot the mean plasmid values and relatedness as a function of pconj
-plot.fig3 <- function(results.b, results.bka, plot=F) {
+plot.fig4 <- function(results.b, results.bka, plot=F) {
 
   if (plot)
-    pdf("fig3.pdf", width=10, height=5)
+    pdf("fig4.pdf", width=10, height=5)
 
   layout(matrix(1:2, nrow=1))
 
@@ -233,7 +233,8 @@ plot.fig3 <- function(results.b, results.bka, plot=F) {
         cbind(results.bka$M$global$M$beta,
               results.bka$M$global$M$kappa,
               results.bka$M$global$M$alpha),
-        main="Plasmid Parameter Values", ylim=c(0.4, 1), xlab=expression(p[c]),
+        main="Plasmid Parameter Values", ylim=c(0.4, 1),
+        xlab=expression(paste("Migration rate (", p[c], ")")),
         log.take="x")
   legend("left", c(expression(beta), expression(kappa), expression(alpha)),
          lwd=1, box.lwd=0, col=c("blue", "red", "green"))
@@ -254,7 +255,7 @@ plot.fig3 <- function(results.b, results.bka, plot=F) {
               r.cnc.mean$beta,
               r.cnc.mean$kappa,
               r.cnc.mean$alpha),
-        xlab=expression(p[c]), ylab="",
+        xlab=expression(paste("Migration rate (", p[c], ")")), ylab="",
         ltype=c("dashed", rep("solid", 3)),
         col=c(rep("blue", 2), "red", "green"),
         log.take="x", main="Plasmid Relatedness")
@@ -268,52 +269,13 @@ plot.fig3 <- function(results.b, results.bka, plot=F) {
 
 
 
-## this function needs the results.new.xdr files located in
-## /data/dpsm/{htg,htg.beta}/
-plot.fig3r <- function(results.b.new, results.bka.new, plot=F) {
-
-  layout(matrix(1))
-
-  if (plot)
-    pdf("fig3r.pdf", w=6, h=6)
-
-  mplot(results.b.new$pconj.values,
-        cbind(
-            ## plot the covariances for NO-CNC and CNC
-            results.b.new$M$drelatedness$oo$cov$beta,
-            results.bka.new$M$drelatedness$oo$cov$beta,
-            ## plot the variances for NO-CNC and CNC
-            results.b.new$M$drelatedness$oo$var$beta,
-            results.bka.new$M$drelatedness$oo$var$beta
-            ),
-        xlab=expression(p[c]), ylab="", type="l", ltype=c(1,1,2,2),
-        ylim=log10(c(3e-5, 1e-3)),
-        log.take="xy", main=expression(paste("Relatedness (", beta, ")")),
-        col=c("blue", "red", "blue", "red"))
-
-  ##expression(cov(beta[ij],bar(beta)[i]))
-  legend("left", c(expression(cov(beta[ij],bar(beta)[i])),
-                   expression(var(beta[ij]))),
-         lwd=1, col="black", lty=c(1,2))
-  text(log10(results.b.new$pconj.values[15]), log10(6e-4),
-       labels="CNC", cex=2, col="red")
-  text(log10(results.b.new$pconj.values[15]), log10(7e-5),
-       labels="NO-CNC", cex=2, col="blue")
-
-  if (plot)
-    dev.off()
-  
-  
-}
-
-
 ## ===========================================================================
 ## plots the averages of the Price equation components as a function of pconj
 ## in the CNC case
-plot.fig4a <- function(results.bka, plot=F) {
+plot.fig5a <- function(results.bka, plot=F) {
 
   if (plot)
-    pdf("fig4a.pdf", w=16, h=6)
+    pdf("fig5a.pdf", w=16, h=6)
 
   layout(matrix(1:3, nrow=1, byrow=T))
 
@@ -355,7 +317,7 @@ plot.fig4a <- function(results.bka, plot=F) {
           cbind(inter, intra, tbias), 
           col=c(rep("blue",4), rep("red",4), "green"), ylim=ylim,
           main=main, log.take="x",
-          xlab=expression(p[c]), yaxt="n",
+          yaxt="n", xlab=expression(p[c]),
           cex.main=2.5, cex.lab=2, cex.axis=2, ltype=1:4)
 
     ## draw the Y axis (major ticks)
@@ -403,10 +365,10 @@ plot.fig4a <- function(results.bka, plot=F) {
 ## ===========================================================================
 ## plots the averages of the Price equation components as a function of pconj
 ## in the NO-CNC case
-plot.fig4b <- function(results.b, plot=F) {
+plot.fig5b <- function(results.b, plot=F) {
 
   if (plot)
-    pdf("fig4b.pdf", w=16, h=6)
+    pdf("fig5b.pdf", w=16, h=6)
 
   layout(matrix(1:3, nrow=1, byrow=T))
 
@@ -429,7 +391,7 @@ plot.fig4b <- function(results.b, plot=F) {
   mplot(results.b$pconj.values,
         cbind(inter, intra, tbias), 
         col=c(rep("blue",4), rep("red",4), "green"),  log.take="x",
-        main=expression(paste("Selection on ", beta, " (x", 10^-4,")")), 
+        main=expression(paste("Selection on ", beta, " (x", 10^-4,")")),
         xlab=expression(p[c]), yaxt="n", ylim=c(-1e-4, 1e-4),
         cex.main=2.5, cex.lab=2, cex.axis=2, ltype=1:4)
   axis(2, at=seq(-1e-4, 1e-4, 1e-4), labels=c(seq(-1, 1, 1)),
@@ -467,20 +429,20 @@ plot.fig4b <- function(results.b, plot=F) {
 ## ==================================================================================
 ## plot the intra-cellular covariances of (beta,alpha) and (kappa, alpha)
 ## as a function of pconj
-plot.fig5 <- function( results, plot=F ) {
+plot.fig6 <- function( results.bka, plot=F ) {
 
   if (plot)
-    pdf("fig8.pdf", width=8, height=5)
+    pdf("fig6.pdf", width=8, height=5)
 
   level = "intra"
 
   layout(matrix(1))
 
-  mplot(results$pconj,
-        cbind(results$M[[level]]$C$beta.alpha,
-              results$M[[level]]$C$kappa.alpha),
-              ##results$M[[level]]$C$alpha.fitness),
-        xlab=expression(p[c]), ylab="", type="l",
+  mplot(results.bka$pconj.values,
+        cbind(results.bka$M[[level]]$C$beta.alpha,
+              results.bka$M[[level]]$C$kappa.alpha),
+        xlab=expression(paste("Migration rate (", p[c], ")")),
+        ylab="", type="l",
         main=expression(paste("Average Within-Host Covariances",
             "  (x", 10 ^ -6, ")")),
         log.take="x", yaxt="n",
@@ -490,22 +452,6 @@ plot.fig5 <- function( results, plot=F ) {
        cex.axis=1)
   abline(h=0)
 
-  ## plot error bars
-  ## error.bar(log10(results$pconj),
-  ##           cbind(results$M[[level]]$C$beta.alpha,
-  ##                 results$M[[level]]$C$kappa.alpha),
-  ##                 ##results$M[[level]]$C$alpha.fitness),
-  ##           cbind(results$S[[level]]$C$beta.alpha,
-  ##                 results$S[[level]]$C$kappa.alpha)  / sqrt(results$runs),
-  ##           ##results$S[[level]]$C$alpha.fitness),
-  ##           col=matrix(rep(c("blue", "red"),
-  ##             length(results$pconj)), ncol=2, byrow=T))
-  
-  ## legend("topleft",
-  ##        c(expression(paste("<", E[i], "[cov"[j], "(", beta, ",", alpha, ")]>")),
-  ##          expression(paste("<", E[i], "[cov"[j], "(", kappa, ",", alpha, ")]>"))),
-  ##        lwd=1, col=c("blue", "red"))
-
   if (plot)
     dev.off()
         
@@ -514,11 +460,11 @@ plot.fig5 <- function( results, plot=F ) {
 
 
 
-
+## ==================================================================================
 ## plots the results of the comp BA and KA experiments
-## produces 2 figures (fig6a, fig6b)
-## open in Inkscape, paste 6b into 6a and save as pdf
-plot.fig6 <- function(results.comp, plot=F) {
+## produces 2 figures (fig7a, fig7b)
+## open in Inkscape, paste 7b into 7a and save as pdf
+plot.fig7 <- function(results.comp, plot=F) {
 
   ba <- results.comp$ba
   ka <- results.comp$ka
@@ -532,7 +478,7 @@ plot.fig6 <- function(results.comp, plot=F) {
   
   ## plot BA
   if (plot)
-    pdf("fig6a.pdf", w=width, h=height)
+    pdf("fig7a.pdf", w=width, h=height)
   annot <- c(0.4,0.9)
   filled.contour(ba$x.values, ba$y.values, ba$mut.wins,
                  xlab=expression(beta), ylab=expression(alpha),
@@ -552,7 +498,7 @@ plot.fig6 <- function(results.comp, plot=F) {
 
   ## plot KA
   if (plot)
-    pdf("fig6b.pdf", w=width, h=height)
+    pdf("fig7b.pdf", w=width, h=height)
   annot <- c(0.9,0.9)
   filled.contour(ka$x.values, ka$y.values, ka$mut.wins,
                  xlab=expression(kappa), ylab="",
