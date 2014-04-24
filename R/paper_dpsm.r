@@ -230,13 +230,17 @@ plot.fig4 <- function(results.b, results.bka, plot=F) {
 
   ## === plot plasmid replication parameters ===
   mplot(results.bka$pconj,
-        cbind(results.bka$M$global$M$beta,
+        cbind(results.b$M$global$M$beta,
+              results.bka$M$global$M$beta,
               results.bka$M$global$M$kappa,
               results.bka$M$global$M$alpha),
-        main="Plasmid Parameter Values", ylim=c(0.4, 1),
+        main="Plasmid Parameter Values", ylim=c(0, 1),
+        ltype=c("dashed", rep("solid", 3)),
+        col=c(rep("blue", 2), "red", "green"),
         xlab=expression(paste("Migration rate (", p[c], ")")),
         log.take="x")
-  legend("left", c(expression(beta), expression(kappa), expression(alpha)),
+  legend(log10(1e-4), 0.8,
+         c(expression(beta), expression(kappa), expression(alpha)),
          lwd=1, box.lwd=0, col=c("blue", "red", "green"))
 
   ## === plot plasmid relatedness ===
