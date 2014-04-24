@@ -62,7 +62,7 @@ plot.fig1 <- function(results.b, results.bka, plot=F) {
 
   mplot(x, cbind(results.b$M$custom$cn, results.bka$M$custom$cn),
         ##cbind(results.b$M$inter$M$cn, results.bka$M$inter$M$cn),
-        main="Group Size", xlab=xlab, ylab="",
+        main="Host Copy Number", xlab=xlab, ylab="",
         log.take="x", col=c("blue", "red"))
   ##abline(v=log10(pconj.opt), h=results.b$M$custom$cn[pconj.opt.idx])
   abline(h=7, lty="dashed")
@@ -71,13 +71,13 @@ plot.fig1 <- function(results.b, results.bka, plot=F) {
 
   mplot(x, cbind(results.b$M$custom$div.inf - results.b$M$custom$death,
                  results.bka$M$custom$div.inf - results.bka$M$custom$death),
-        main="Group Performance", xlab=xlab, ylab="",
+        main="Host Growth Rate", xlab=xlab, ylab="",
         log.take="x", col=c("blue", "red"))
   ##abline(v=log10(pconj.opt))
 
   mplot(x, cbind(results.b$M$custom$death,
                  results.bka$M$custom$death),
-        main="Group Mortality", xlab=xlab, ylab="",
+        main="Host Mortality", xlab=xlab, ylab="",
         log.take="x", col=c("blue", "red"))
 
   if (plot)
@@ -376,6 +376,8 @@ plot.fig5b <- function(results.b, plot=F) {
 
   layout(matrix(1:3, nrow=1, byrow=T))
 
+  plot(1, cex.main=2.5, cex.lab=2, cex.axis=2)
+
   inter <- cbind(sapply(c("fitness", "nr", "ht", "death"),
                         function (fname)
                         results.b$M$inter$C[[sprintf("beta.%s", fname)]],
@@ -419,6 +421,8 @@ plot.fig5b <- function(results.b, plot=F) {
 
   ## legend("topright", "Transmission Bias", ##inset=c(0, 0.35),
   ##        lwd=1, bty="n", cex=2, col="green")
+
+  plot(1, cex.main=2.5, cex.lab=2, cex.axis=2)
 
   if (plot)
     dev.off()
