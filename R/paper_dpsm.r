@@ -20,6 +20,9 @@ tryCatch(suppressWarnings(source('dps.r')), error=function(e) source('R/dps.r'))
 ## "The invasion of cis-selfish mutants" figure is composed
 ## of two separate figures which should be joined using
 ## inkscape
+
+## For PLoS CB: generate TIFFs by opening in Gimp -- flatten
+## image and export in predefined sizes
 ## ========================================================
 
 ## === use the following files for results ===
@@ -62,7 +65,8 @@ plot.fig1 <- function(results.b, results.bka, plot=F) {
 
   mplot(x, cbind(results.b$M$custom$cn, results.bka$M$custom$cn),
         ##cbind(results.b$M$inter$M$cn, results.bka$M$inter$M$cn),
-        main="Host Copy Number", xlab=xlab, ylab="",
+        main="Host Copy Number", xlab=xlab,
+        ylab="n",
         log.take="x", col=c("blue", "red"))
   ##abline(v=log10(pconj.opt), h=results.b$M$custom$cn[pconj.opt.idx])
   abline(h=7, lty="dashed")
@@ -71,13 +75,15 @@ plot.fig1 <- function(results.b, results.bka, plot=F) {
 
   mplot(x, cbind(results.b$M$custom$div.inf - results.b$M$custom$death,
                  results.bka$M$custom$div.inf - results.bka$M$custom$death),
-        main="Host Growth Rate", xlab=xlab, ylab="",
+        main="Host Growth Rate", xlab=xlab,
+        ylab="(divisions - deaths) / generation",
         log.take="x", col=c("blue", "red"))
   ##abline(v=log10(pconj.opt))
 
   mplot(x, cbind(results.b$M$custom$death,
                  results.bka$M$custom$death),
-        main="Host Mortality", xlab=xlab, ylab="",
+        main="Host Mortality", xlab=xlab,
+        ylab="deaths / generation",
         log.take="x", col=c("blue", "red"))
 
   if (plot)
@@ -174,13 +180,15 @@ plot.fig3 <- function(results.b, results.bka, plot=F) {
   ## plot rep rate
   mplot(cbind(results.b$pconj, results.bka$pconj),
         cbind(results.b$M$custom$rep.cn, results.bka$M$custom$rep.cn),
-        main="Plasmid Replication Rate", ylab="", ##xlab=expression(p[c]),,
+        main="Plasmid Replication Rate",
+        ylab="replications / plasmid generation",
         log.take="x")
 
   ## plot conj rate
   mplot(cbind(results.b$pconj, results.bka$pconj),
         cbind(results.b$M$custom$ht.cn, results.bka$M$custom$ht.cn),
-        main="Plasmid Conjugation Rate", ylab="", ##xlab=expression(p[c]),
+        main="Plasmid Conjugation Rate", 
+        ylab="transfers / plasmid generation",
         log.take="x")
 
   ##par(mar=0.1 + c(3, 4, 2, 2)) ## (b,l,t,r)
@@ -188,7 +196,7 @@ plot.fig3 <- function(results.b, results.bka, plot=F) {
   ## plot seg loss
   mplot(cbind(results.b$pconj, results.bka$pconj),
         cbind(results.b$M$custom$loss.cn, results.bka$M$custom$loss.cn),
-        main="Segregation Loss", ylab="",
+        main="Segregation Loss", ylab="losses / division", 
         xlab=expression(paste("Migration rate (", p[c], ")")), 
         log.take="xy", col=c("blue", "red"))
   
@@ -198,7 +206,7 @@ plot.fig3 <- function(results.b, results.bka, plot=F) {
         cbind(results.b$M$counters$inf / results.b$M$counters$n,
               results.bka$M$counters$inf / results.bka$M$counters$n),
         ##cbind(results.b$M$custom$ht.cn, results.bka$M$custom$ht.cn),
-        main="Infection", ylab="", 
+        main="Infection", ylab="fraction infected", 
         xlab=expression(paste("Migration rate (", p[c], ")")), 
         log.take="x")
 
@@ -259,7 +267,7 @@ plot.fig4 <- function(results.b, results.bka, plot=F) {
               r.cnc.mean$beta,
               r.cnc.mean$kappa,
               r.cnc.mean$alpha),
-        xlab=expression(paste("Migration rate (", p[c], ")")), ylab="",
+        xlab=expression(paste("Migration rate (", p[c], ")")), ylab="R",
         ltype=c("dashed", rep("solid", 3)),
         col=c(rep("blue", 2), "red", "green"),
         log.take="x", main="Plasmid Relatedness")
@@ -340,13 +348,13 @@ plot.fig5a <- function(results.bka, plot=F) {
 
     if (name == "beta") {
       legend("topleft",
-             c("Selection due to f (WH)",
+             c("Total Selection (WH)",
                expression(paste("Selection due to ", n^R, " (WH)")),
                expression(paste("Selection due to ", n^H, " (WH)")),
                expression(paste("Selection due to ", n^D, " (WH)"))),
              lwd=1, lty=1:4, bty="n", cex=2, col="red")
       legend("bottomleft",
-             c("Selection due to f (BH)",
+             c("Total Selection (BH)",
                expression(paste("Selection due to ", n^R, " (BH)")),
                expression(paste("Selection due to ", n^H, " (BH)")),
                expression(paste("Selection due to ", n^D, " (BH)"))),
@@ -405,13 +413,13 @@ plot.fig5b <- function(results.b, plot=F) {
   abline(h=0)
 
   legend("topleft",
-         c("Selection due to f (WH)",
+         c("Total Selection (WH)",
            expression(paste("Selection due to ", n^R, " (WH)")),
            expression(paste("Selection due to ", n^H, " (WH)")),
            expression(paste("Selection due to ", n^D, " (WH)"))),
          lwd=1, lty=1:4, bty="n", cex=2, col="red")
   legend("bottomleft",
-         c("Selection due to f (BH)",
+         c("Total Selection (BH)",
            expression(paste("Selection due to ", n^R, " (BH)")),
            expression(paste("Selection due to ", n^H, " (BH)")),
            expression(paste("Selection due to ", n^D, " (BH)"))),
