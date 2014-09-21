@@ -384,9 +384,9 @@ plot.fig5 <- function(results.b, results.bka, plot=F) {
         cbind(inter, intra, tbias), 
         col=c(rep("blue",4), rep("red",4), "green"),  log.take="x",
         main=expression(paste("Selection on ", beta, " (x", 10^-4,")")),
-        xlab=expression(p[c]), yaxt="n", ylim=c(-1e-4, 1e-4),
+        xlab=expression(p[c]), yaxt="n", ylim=c(-2e-4, 2e-4),
         cex.main=2.5, cex.lab=2, cex.axis=2, ltype=1:4)
-  axis(2, at=seq(-1e-4, 1e-4, 1e-4), labels=c(seq(-1, 1, 1)),
+  axis(2, at=seq(-2e-4, 2e-4, 1e-4), labels=c(seq(-2, 2, 1)),
        cex.axis=2)
   abline(h=0)
 
