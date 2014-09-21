@@ -283,13 +283,13 @@ plot.fig4 <- function(results.b, results.bka, plot=F) {
 
 ## ===========================================================================
 ## plots the averages of the Price equation components as a function of pconj
-## in the CNC case
-plot.fig5a <- function(results.bka, plot=F) {
+## in the CNC and NO-CNC case in one figure
+plot.fig5 <- function(results.b, results.bka, plot=F) {
 
   if (plot)
-    pdf("fig5a.pdf", w=16, h=6)
+    pdf("fig5.pdf", w=20, h=6)
 
-  layout(matrix(1:3, nrow=1, byrow=T))
+  layout(matrix(1:4, nrow=1, byrow=T))
 
   ## create a 1-row/3-col plot with blue:inter, red:intra and different
   ## line types for each component (n^R, n^H ...)
@@ -364,28 +364,6 @@ plot.fig5a <- function(results.bka, plot=F) {
     }
   }
 
-  layout(matrix(1))
-
-  if (plot)
-    dev.off()
-
-}
-
-
-
-
-## ===========================================================================
-## plots the averages of the Price equation components as a function of pconj
-## in the NO-CNC case
-plot.fig5b <- function(results.b, plot=F) {
-
-  if (plot)
-    pdf("fig5b.pdf", w=16, h=6)
-
-  layout(matrix(1:3, nrow=1, byrow=T))
-
-  plot(1, cex.main=2.5, cex.lab=2, cex.axis=2)
-
   inter <- cbind(sapply(c("fitness", "nr", "ht", "death"),
                         function (fname)
                         results.b$M$inter$C[[sprintf("beta.%s", fname)]],
@@ -412,35 +390,31 @@ plot.fig5b <- function(results.b, plot=F) {
        cex.axis=2)
   abline(h=0)
 
-  legend("topleft",
-         c("Total Selection (WH)",
-           expression(paste("Selection due to ", n^R, " (WH)")),
-           expression(paste("Selection due to ", n^H, " (WH)")),
-           expression(paste("Selection due to ", n^D, " (WH)"))),
-         lwd=1, lty=1:4, bty="n", cex=2, col="red")
-  legend("bottomleft",
-         c("Total Selection (BH)",
-           expression(paste("Selection due to ", n^R, " (BH)")),
-           expression(paste("Selection due to ", n^H, " (BH)")),
-           expression(paste("Selection due to ", n^D, " (BH)"))),
-         lwd=1, lty=1:4, bty="n", cex=2, col="blue")
-  legend("topleft", "Transmission Bias", inset=c(0, 0.33),
-         lwd=1, bty="n", cex=2, col="green")
+  ## legend("topleft",
+  ##        c("Total Selection (WH)",
+  ##          expression(paste("Selection due to ", n^R, " (WH)")),
+  ##          expression(paste("Selection due to ", n^H, " (WH)")),
+  ##          expression(paste("Selection due to ", n^D, " (WH)"))),
+  ##        lwd=1, lty=1:4, bty="n", cex=2, col="red")
+  ## legend("bottomleft",
+  ##        c("Total Selection (BH)",
+  ##          expression(paste("Selection due to ", n^R, " (BH)")),
+  ##          expression(paste("Selection due to ", n^H, " (BH)")),
+  ##          expression(paste("Selection due to ", n^D, " (BH)"))),
+  ##        lwd=1, lty=1:4, bty="n", cex=2, col="blue")
+  ## legend("topleft", "Transmission Bias", inset=c(0, 0.33),
+  ##        lwd=1, bty="n", cex=2, col="green")
 
   ## legend("topright", "Transmission Bias", ##inset=c(0, 0.35),
   ##        lwd=1, bty="n", cex=2, col="green")
 
-  plot(1, cex.main=2.5, cex.lab=2, cex.axis=2)
+  layout(matrix(1))
 
   if (plot)
     dev.off()
-
-  layout(matrix(1))
   
 }
-
-
-
+  
 
 ## ==================================================================================
 ## plot the intra-cellular covariances of (beta,alpha) and (kappa, alpha)
