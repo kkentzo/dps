@@ -279,9 +279,9 @@ Comput Biol, 9(4):e1003036+, 2013.
 
 K. Kentzoglanakis, S. P. Brown, and
 R. A. Goldstein. [Using the Price equation to analyze multi-level selection on the reproductive policing mechanism of bacterial plasmids](#)
-Submitted to BMC Evol Bio.
+Submitted to PLoS One
 
 K. Kentzoglanakis, S. P. Brown, and
 R. A. Goldstein. [The evolution of policing in genetically mixed groups enhances productivity and relatedness through coercive control of neighbour reproduction](#)
-Under preparation.
+Under preparation
 
