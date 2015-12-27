@@ -148,13 +148,13 @@ void run(params_t *params) {
 
     // is population extinct??
     if (params->cells->len == 0) {
-      printf("step %d | Population is exinct!\n", params->step);
+      printf("step %d | Population is extinct!\n", params->step);
       break;
     }
 
     // are plasmid extinct??
     if ((int)params->pool->cn == 0) {
-      printf("step %d | Plasmids are exinct!\n", params->step);
+      printf("step %d | Plasmids are extinct!\n", params->step);
       global_abort = TRUE;
     }
 
