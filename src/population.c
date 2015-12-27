@@ -101,11 +101,11 @@ void run(params_t *params) {
     // reset the bitvector
     bv_set_all_off(dvec);
     // set the bitvector bits on for the cells to be randomly killed
-    for (i=0; i<rdeath; i++) 
+    for (i=0; i<rdeath; i++)
       bv_set_on(dvec, the_dead[i]);
 
     // === REGISTER THE GLOBAL/INTER/INTRA STATS FOR ALL HOSTS ===
-	
+
     // === update all dead cells  ===
     for (i=0; i<dead_cells->len; i++) {
       // grab cell
@@ -162,7 +162,7 @@ void run(params_t *params) {
     if (params->compete && params->pool->size == 1) {
       printf("step %d | Competition is over\n", params->step);
       profile_t *winner = pool_get_last(params->pool);
-      printf("Winner : b=%.3f | k=%.3f | a=%.3f\n", 
+      printf("Winner : b=%.3f | k=%.3f | a=%.3f\n",
 	     winner->beta, winner->kappa, winner->alpha);
       global_abort = TRUE;
     }
@@ -269,18 +269,18 @@ void save_population(params_t *params, const char *fname) {
     FILE *fp = fopen(fname, "w");
     fprintf(fp, "%s\n%s", prof_st->str, pop_st->str);
     fclose(fp);
-	
+
   } else {
-	
+
     // pass the strings to logger
     logger_save_population(params->logger, prof_st, pop_st);
-	
+
   }
 
   // free the strings
   g_string_free(prof_st, TRUE);
   g_string_free(pop_st, TRUE);
-    
+
 }
 
 
@@ -340,7 +340,7 @@ void load_population_from_file(params_t *params) {
   H5LTread_dataset_string(file_id, "/population/hosts", buffer);
   // create GString for profiles
   hosts_string = g_string_new(buffer);
-  // strip any unwanted extra characters from the end 
+  // strip any unwanted extra characters from the end
   // ot the hosts_string until the last char is a closing paren
   char last = hosts_string->str[hosts_string->len-1];
   while (last != ')') {
@@ -373,7 +373,7 @@ void load_population_from_file(params_t *params) {
 
       // ATTENTION : token #1 is the pointer to the profile's parent
       //             which does not concern us right now
-	    
+
       if (params->f_beta)
 	beta = params->beta;
       else
@@ -383,13 +383,13 @@ void load_population_from_file(params_t *params) {
 	kappa = params->kappa;
       else
 	kappa = atof(((GString *)g_ptr_array_index(ptokens, 3))->str);
-	    
+
       if (params->f_alpha)
 	alpha = params->alpha;
       else
 	alpha = atof(((GString *)g_ptr_array_index(ptokens, 4))->str);
 
-	    
+
       if (tokens->len < 5) // why 5??? ==> aah, do not print more than 5 profiles, OK.
 	printf("Adding profile : beta=%.3f | kappa=%.3f | alpha=%.3f \n",
 	       beta, kappa, alpha);
@@ -406,13 +406,13 @@ void load_population_from_file(params_t *params) {
 
     g_ptr_array_free_with_func(tokens, g_string_free_func);
 
-	
+
     // === now load the population ===
     cell_t *cell;
     profile_t *profile;
     int cn;
     GString *st;
-    
+
     tokens = g_string_tokenize(hosts_string);
     // this shouldn't be NULL
     assert(tokens);
@@ -473,7 +473,7 @@ void load_population_from_file(params_t *params) {
 	cell_add_profile(cell, profile, cn);
 	// free qtokens
 	g_ptr_array_free_with_func(qtokens, g_string_free_func);
-		
+
       }
 
       // add cell to cells
@@ -483,10 +483,10 @@ void load_population_from_file(params_t *params) {
       g_ptr_array_free_with_func(vtokens, g_string_free_func);
       // free ptokens
       g_ptr_array_free_with_func(ptokens, g_string_free_func);
-	
+
     }
 
-    g_ptr_array_free_with_func(tokens, g_string_free_func);	
+    g_ptr_array_free_with_func(tokens, g_string_free_func);
 
   }
 
@@ -497,7 +497,7 @@ void load_population_from_file(params_t *params) {
   // free stuff
   g_string_free(hosts_string, TRUE);
   g_string_free(profiles_string, TRUE);
-    
+
 }
 
 
@@ -527,7 +527,7 @@ void initialize_population(params_t *params) {
     cell_add_profile(cell, profile, 1);
     // add the cell to population
     g_ptr_array_add(params->cells, cell);
-	
+
   }
 
   // disown plasmid profile
