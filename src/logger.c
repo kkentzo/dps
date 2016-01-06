@@ -333,7 +333,7 @@ void logger_register_cell(logger_t *logger, cell_t *cell) {
     double host[] = {cell->domg,
 		     cell->cn,
 		     cell->cn - logger->params->cn_hat,
-		     abs(cell->cn - logger->params->cn_hat),
+		     fabs(cell->cn - logger->params->cn_hat),
 		     nvar_calc_mean(cell->stats, P_INTRA_IDX_BETA),
 		     nvar_calc_mean(cell->stats, P_INTRA_IDX_KAPPA),
 		     nvar_calc_mean(cell->stats, P_INTRA_IDX_ALPHA),
