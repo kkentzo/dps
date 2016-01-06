@@ -311,14 +311,14 @@ cell_t *cell_grow(cell_t *cell) {
   cell->rdeath = FALSE;
 
   // === register division or death ===
-  if (cell->death) 
+  if (cell->death)
     logger_register_events(cell->params->logger, E_DEATH, 1);
-  else if (cell->division) 
+  else if (cell->division)
     // register cell division
     logger_register_division(cell->params->logger, cell);
 
-  if (cell->division)
-    assert(! cell->death);
+  /* if (cell->division) */
+  /*   assert(! cell->death); */
 
   // perform division???
   return (cell->division ? cell_divide(cell) : cell);
