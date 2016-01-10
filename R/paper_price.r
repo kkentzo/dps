@@ -166,7 +166,98 @@ price.plot.fig2 <- function(dz, steps.range=NA, ##steps.range=c(2e5, 3e5),
 
   if (plot)
     dev.off()
-  
+
+}
+
+
+
+
+## ===========================================================================
+## plots the dynamics of the Price equation components for bka
+## for the low CN simulations
+## plasmid profile params in this case are as follows:
+##   phi=0.18
+##   gamma=0.012
+##   lambda=1
+price.plot.fig2.low.cn <- function(dz, steps.range=NA,
+                                   price.ylim=c(-8e-6, 8e-6), plot=F) {
+
+
+  ## calculate steps.range
+  if (length(steps.range) != 2)
+    steps.range <- 1:length(dz$fitness)
+  else
+    steps.range <- steps.range[1]:steps.range[2]
+
+  first.three.quarters <- steps.range[1:(3*length(steps.range)/4)]
+  last.quarter <- steps.range[(3*length(steps.range)/4):length(steps.range)]
+
+  if (plot)
+    pdf("fig2.low.cn.pdf", width=10, height=5)
+
+  layout(matrix(1:4, ncol=4), widths=c(1,rep(5,3)))
+  par.bak <- par(no.readonly = TRUE)
+  # plot the ylabel
+  par(mar=c(6,0,4,2))
+  plot(1:10, 1:10, xlab="", ylab="", type="n", axes=F)
+  ##box("fig", col="red") ## for debugging
+  text(5, 5.5,
+       expression(paste("Price Equation Components", "  (x", 10^-6,")")),
+       cex=1.5, srt=90)
+
+  ## plot the Price equation components
+  alphabet <- c("A", "B", "C")
+  i <- 1
+
+  for (name in c("beta", "kappa", "alpha")) {
+
+    total = dz[[name]]$total[steps.range]
+    inter = dz[[name]]$inter[steps.range]
+    intra = dz[[name]]$intra[steps.range]
+    tbias = dz[[name]]$tbias[steps.range]
+
+    ## print out some info
+    cat("==> ", name, "\n")
+    cat("inter = ", mean(inter[first.three.quarters], na.rm=T),
+        "|", mean(inter[last.quarter], na.rm=T), "\n")
+    cat("intra = ", mean(intra[first.three.quarters], na.rm=T),
+        "|", mean(intra[last.quarter], na.rm=T), "\n")
+
+    ## plot the Price Equation components
+    mplot(steps.range, cbind(total, inter, intra, tbias),
+          xlab=switch(name,
+              kappa=expression(paste("Evolutionary Time",
+                "  (x", 10^5,")")),
+              ""),
+          ylab="",
+          ylim=price.ylim,
+          xaxt="n", yaxt="n",
+          col=c("black", "blue", "red", "green"),
+          cex.main=2, cex.lab=1.5)
+    ## write figure label
+    text(steps.range[length(steps.range)], price.ylim[2],
+         labels=alphabet[i], cex=4, adj=c(1,1))
+    ## draw the Y axis (major ticks)
+    axis(2, at=seq(-8e-6, 8e-6, 2e-6),
+         labels=switch(name, beta=seq(-8, 8, 2), NA),
+         cex.axis=1.5)
+    ## draw the X axis (major ticks)
+    axis(1, at=seq(0, 1e6, 2.5e5),
+         labels=seq(0, 10, 2.5),
+         cex.axis=1.5)
+
+    abline(h=0)
+
+    i <- i + 1
+
+  }
+
+  par(par.bak)
+  layout(matrix(1))
+
+  if (plot)
+    dev.off()
+
 }
 
 
@@ -345,7 +436,63 @@ price.plot.fig5 <- function(dz, plot=F, steps.range=c(1,5e5)) {
     dev.off()
 
   layout(matrix(1))
-  
+
+}
+
+
+## ===========================================================================
+## plot BHS on beta with events for low CN simulation
+## plasmid profile params in this case are as follows:
+##   phi=0.18
+##   gamma=0.012
+##   lambda=1
+price.plot.fig5.low.cn <- function(dz, plot=F, steps.range=c(1,5e5)) {
+
+  ## calculate steps.range
+  if (length(steps.range) != 2)
+    steps.range <- 1:nrow(dz$beta)
+  else
+    steps.range <- steps.range[1]:steps.range[2]
+
+  if (plot)
+    pdf("fig5.low.cn.pdf", w=10, h=4)
+
+  layout(matrix(1:3, ncol=3))
+
+  rng <- range(steps.range)
+  xticks <- as.integer(seq(rng[1]-1, rng[2], 2.5e5))
+
+  for (z.name in c("beta", "kappa", "alpha")) {
+
+    nr <- dz[[z.name]]$inter.nr[steps.range]
+    death <- - dz[[z.name]]$inter.death[steps.range]
+    total <- nr + death
+    main <- switch(z.name,
+                   beta=expression(paste("BHS on ", beta, "  (x", 10^-5,")")),
+                   kappa=expression(paste("BHS on ", kappa, "  (x", 10^-5,")")),
+                   alpha=expression(paste("BHS on ", alpha, "  (x", 10^-5,")")))
+
+    ## plot BHS
+    mplot(steps.range, cbind(total, nr, death),
+          col=c("black", "blue", "red"),
+          main=main, xaxt='n', yaxt='n',
+          xlab=if (z.name=="kappa") "Evolutionary Time" else "",
+          ylim=c(-4e-5, 4e-5), cex.main=2, cex.lab=1.5)
+    abline(h=0)
+    ## mark the time ticks properly
+    axis(1, at=xticks,
+         labels=sapply(xticks, function(x) sprintf("%d",x)),
+         cex.axis=1.5)
+    ## draw the Y axis (major ticks)
+    axis(2, at=seq(-4e-5, 4e-5, 2e-5),
+         labels=seq(-4, 4, 2), cex.axis=1.5)
+  }
+
+  if (plot)
+    dev.off()
+
+  layout(matrix(1))
+
 }
 
 
