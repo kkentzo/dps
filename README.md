@@ -282,6 +282,5 @@ R. A. Goldstein. [Using the Price equation to analyze multi-level selection on t
 Submitted to PLoS One
 
 K. Kentzoglanakis, S. P. Brown, and
-R. A. Goldstein. [The evolution of policing in genetically mixed groups enhances productivity and relatedness through coercive control of neighbour reproduction](#)
-Under preparation
-
+R. A. Goldstein. [The evolution of policing in genetically mixed groups enhances productivity and relatedness through coercive control of neighbour reproduction](http://biorxiv.org/content/early/2016/05/22/053579)
+Provisional Preprint
