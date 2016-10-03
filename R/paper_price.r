@@ -446,7 +446,8 @@ price.plot.fig5 <- function(dz, plot=F, steps.range=c(1,5e5)) {
 ##   phi=0.18
 ##   gamma=0.012
 ##   lambda=1
-price.plot.fig5.low.cn <- function(dz, plot=F, steps.range=c(1,5e5)) {
+## This is the low-cn version of fig5
+price.plot.fig6 <- function(dz, plot=F, steps.range=c(1,5e5)) {
 
   ## calculate steps.range
   if (length(steps.range) != 2)
@@ -455,7 +456,7 @@ price.plot.fig5.low.cn <- function(dz, plot=F, steps.range=c(1,5e5)) {
     steps.range <- steps.range[1]:steps.range[2]
 
   if (plot)
-    pdf("fig5.low.cn.pdf", w=10, h=4)
+    pdf("fig6.pdf", w=10, h=4)
 
   layout(matrix(1:3, ncol=3))
 
