@@ -278,9 +278,7 @@ Plasmids.](http://dx.plos.org/10.1371/journal.pcbi.1003036) PLoS
 Comput Biol, 9(4):e1003036+, 2013.
 
 K. Kentzoglanakis, S. P. Brown, and
-R. A. Goldstein. [Using the Price equation to analyze multi-level selection on the reproductive policing mechanism of bacterial plasmids](#)
-Submitted to PLoS One
+R. A. Goldstein. [Using the Price equation to analyze multi-level selection on the reproductive policing mechanism of bacterial plasmids](https://www.biorxiv.org/content/10.1101/079574v1.full)
 
 K. Kentzoglanakis, S. P. Brown, and
-R. A. Goldstein. [The evolution of policing in genetically mixed groups enhances productivity and relatedness through coercive control of neighbour reproduction](http://biorxiv.org/content/early/2016/05/22/053579)
-Provisional Preprint
+R. A. Goldstein. [The evolution of policing in genetically mixed groups enhances productivity and relatedness through coercive control of neighbour reproduction](https://www.biorxiv.org/content/10.1101/053579v1)
